@@ -8,15 +8,15 @@ import ru.yandex.practicum.filmorate.model.Film;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @RestController
 public class FilmController {
 
-    private Map<Integer, Film> films = new HashMap<>();
+    private Map<Integer, Film> films = new ConcurrentHashMap<>();
     public static final int MAX_FILM_DESCRIPTION_LENGTH = 200;
     public static final LocalDate MIN_RELEASE_DATE = LocalDate.of(1985, Month.DECEMBER, 28);
     private int id = 0;
