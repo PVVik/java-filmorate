@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.lang.Nullable;
 
 import java.time.LocalDate;
 import java.util.Objects;
