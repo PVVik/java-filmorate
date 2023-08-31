@@ -1,15 +1,15 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import org.springframework.lang.Nullable;
 
 import java.time.LocalDate;
 import java.util.Objects;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
-@Builder
 public class Film {
 
     private int id;
@@ -17,6 +17,19 @@ public class Film {
     private String description;
     private LocalDate releaseDate;
     private long duration;
+    private Set<Integer> likes;
+
+    public void addLike(Integer userId) {
+        likes.add(userId);
+    }
+
+    public void removeLike(Integer userId) {
+        likes.remove(userId);
+    }
+
+    public int getLikesQuantity() {
+        return likes.size();
+    }
 
     @Override
     public boolean equals(Object o) {
