@@ -3,12 +3,9 @@ package ru.yandex.practicum.filmorate.storage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exceptions.ObjectNotFoundException;
-import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,25 +15,21 @@ import java.util.concurrent.ConcurrentHashMap;
 public class InMemoryUserStorage implements UserStorage {
 
     private static Map<Integer, User> users;
-    private Integer id;
 
     public InMemoryUserStorage() {
         users = new ConcurrentHashMap<>();
-        id = 0;
     }
 
     @Override
-    public User addUser(User user) throws ValidationException {
-        userValidate(user);
+    public User addUser(User user) {
         users.put(user.getId(), user);
         log.info("Пользователь сохранён под id '{}'", user.getId());
         return user;
     }
 
     @Override
-    public User updateUser(User user) throws ValidationException {
+    public User updateUser(User user) {
         if (users.containsKey(user.getId())) {
-            userValidate(user);
             users.put(user.getId(), user);
             log.info("Пользователь с id '{}' обновлён", user.getId());
             return user;
@@ -63,27 +56,5 @@ public class InMemoryUserStorage implements UserStorage {
     public void deleteUsers() {
         users.clear();
         log.info("Все пользователи удалены.");
-    }
-
-
-    private void userValidate(User user) throws ValidationException {
-        if (user.getEmail() == null || user.getEmail().isBlank() || !user.getEmail().contains("@")) {
-            throw new ValidationException("Введён неверный email.");
-        }
-        if (user.getLogin().isBlank() || user.getLogin().isEmpty()) {
-            throw new ValidationException("Введён неверный логин.");
-        }
-        if (user.getBirthday().isAfter(LocalDate.now()) || user.getBirthday() == null) {
-            throw new ValidationException("Введена неверная дата.");
-        }
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
-        if (user.getFriends() == null) {
-            user.setFriends(new HashSet<>());
-        }
-        if (user.getId() <= 0) {
-            user.setId(++id);
-        }
     }
 }

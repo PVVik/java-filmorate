@@ -14,29 +14,28 @@ import java.util.List;
 @RequestMapping("/films")
 @RequiredArgsConstructor
 public class FilmController {
-    @Autowired
-    private final FilmStorage filmStorage;
+
     @Autowired
     private final FilmService filmService;
 
     @PostMapping
     public Film createFilm(@RequestBody Film film) throws ValidationException {
-        return filmStorage.addFilm(film);
+        return filmService.addFilm(film);
     }
 
     @GetMapping
     public List<Film> getFilms() {
-        return filmStorage.getAllFilms();
+        return filmService.getAllFilms();
     }
 
     @PutMapping
     public Film updateFilm(@RequestBody Film film) throws ValidationException {
-        return filmStorage.updateFilm(film);
+        return filmService.updateFilm(film);
     }
 
     @GetMapping("/{id}")
     public Film getFilmById(@PathVariable Integer id) {
-        return filmStorage.getFilmById(id);
+        return filmService.getFilmById(id);
     }
 
     @GetMapping("/popular")

@@ -4,10 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.ObjectNotFoundException;
+import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -18,6 +21,7 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserStorage userStorage;
+    private Integer id;
 
     public void addFriend(Integer userId, Integer friendId) {
         User user = userStorage.getUserById(userId);
@@ -58,7 +62,7 @@ public class UserService {
         } else {
             return new ArrayList<>();
         }
-    }
+    }//я не поняла, какой блок кода нужно вынести в сторадж
 
     public List<User> getFriends(int id) {
         User user = userStorage.getUserById(id);
@@ -75,8 +79,43 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    public UserStorage getUserStorage() {
-        return userStorage;
+    public User addUser(User user) throws ValidationException {
+        userValidate(user);
+        return userStorage.addUser(user);
+    }
+
+    public List<User> getUsers() {
+        return userStorage.getAllUsers();
+    }
+
+    public User updateUser(User user) throws ValidationException {
+        userValidate(user);
+        return userStorage.updateUser(user);
+    }
+
+    public User getUserById(int id) {
+        return userStorage.getUserById(id);
+    }
+
+    private void userValidate(User user) throws ValidationException {
+        if (user.getEmail() == null || user.getEmail().isBlank() || !user.getEmail().contains("@")) {
+            throw new ValidationException("Введён неверный email.");
+        }
+        if (user.getLogin().isBlank() || user.getLogin().isEmpty()) {
+            throw new ValidationException("Введён неверный логин.");
+        }
+        if (user.getBirthday().isAfter(LocalDate.now()) || user.getBirthday() == null) {
+            throw new ValidationException("Введена неверная дата.");
+        }
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
+        if (user.getFriends() == null) {
+            user.setFriends(new HashSet<>());
+        }
+        if (user.getId() <= 0) {
+            user.setId(++id);
+        }
     }
 }
 

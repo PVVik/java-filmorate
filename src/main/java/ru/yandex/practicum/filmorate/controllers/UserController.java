@@ -14,29 +14,28 @@ import java.util.List;
 @RequestMapping("/users")
 @RequiredArgsConstructor
 public class UserController {
-    @Autowired
-    private final UserStorage userStorage;
+
     @Autowired
     private final UserService userService;
 
     @PostMapping
     public User createUser(@RequestBody User user) throws ValidationException {
-        return userStorage.addUser(user);
+        return userService.addUser(user);
     }
 
     @GetMapping
     public List<User> getUsers() {
-        return userStorage.getAllUsers();
+        return userService.getUsers();
     }
 
     @PutMapping
     public User updateUser(@RequestBody User user) throws ValidationException {
-        return userStorage.updateUser(user);
+        return userService.updateUser(user);
     }
 
     @GetMapping("/{id}")
     public User getUserById(@PathVariable Integer id) {
-        return userStorage.getUserById(id);
+        return userService.getUserById(id);
     }
 
     @PutMapping("/{id}/friends/{friendId}")
