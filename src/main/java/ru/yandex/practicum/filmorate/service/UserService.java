@@ -62,7 +62,8 @@ public class UserService {
         } else {
             return new ArrayList<>();
         }
-    }//я не поняла, какой блок кода нужно вынести в сторадж
+    }
+    //я не поняла, какой блок кода нужно вынести в сторадж
 
     public List<User> getFriends(int id) {
         User user = userStorage.getUserById(id);
