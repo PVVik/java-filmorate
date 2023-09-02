@@ -19,10 +19,11 @@ import java.util.List;
 public class FilmService {
 
     private final FilmStorage filmStorage;
-    private Integer id;
+    private final UserService userService;
 
     public void addLike(Integer filmId, Integer userId) {
         Film film = filmStorage.getFilmById(filmId);
+        userService.getUserById(userId);
         if (film == null) {
             throw new ObjectNotFoundException("Такого фильма не существует.");
         }
@@ -32,6 +33,7 @@ public class FilmService {
 
     public void deleteLike(int filmId, int userId) {
         Film film = filmStorage.getFilmById(filmId);
+        userService.getUserById(userId);
         if (film == null) {
             throw new ObjectNotFoundException("Такого фильма не существует.");
         }
@@ -77,9 +79,6 @@ public class FilmService {
         }
         if (film.getLikes() == null) {
             film.setLikes(new HashSet<>());
-        }
-        if (film.getId() <= 0) {
-            film.setId(++id);
         }
     }
 }

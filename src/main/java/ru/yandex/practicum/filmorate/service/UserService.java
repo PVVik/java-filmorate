@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserStorage userStorage;
-    private Integer id;
 
     public void addFriend(Integer userId, Integer friendId) {
         User user = userStorage.getUserById(userId);
@@ -113,9 +112,6 @@ public class UserService {
         }
         if (user.getFriends() == null) {
             user.setFriends(new HashSet<>());
-        }
-        if (user.getId() <= 0) {
-            user.setId(++id);
         }
     }
 }

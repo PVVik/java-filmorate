@@ -14,13 +14,16 @@ import java.util.stream.Collectors;
 public class InMemoryFilmStorage implements FilmStorage {
 
     private Map<Integer, Film> films;
+    private int id;
 
     public InMemoryFilmStorage() {
         films = new ConcurrentHashMap<>();
+        id = 0;
     }
 
     @Override
     public Film addFilm(Film film) {
+        setId(film);
         films.put(film.getId(), film);
         log.info("Фильм '{}' был сохранён под id '{}'", film.getName(), film.getId());
         return film;
@@ -65,5 +68,11 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .sorted(Comparator.comparing(f -> f.getLikes().size(), Comparator.reverseOrder()))
                 .limit(count)
                 .collect(Collectors.toList());
+    }
+
+    private void setId(Film film) {
+        if (film.getId() <= 0) {
+            film.setId(++id);
+        }
     }
 }

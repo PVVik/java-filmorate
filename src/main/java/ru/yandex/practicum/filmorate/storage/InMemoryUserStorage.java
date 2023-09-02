@@ -15,13 +15,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class InMemoryUserStorage implements UserStorage {
 
     private static Map<Integer, User> users;
+    private int id;
 
     public InMemoryUserStorage() {
         users = new ConcurrentHashMap<>();
+        id = 0;
     }
 
     @Override
     public User addUser(User user) {
+        setId(user);
         users.put(user.getId(), user);
         log.info("Пользователь сохранён под id '{}'", user.getId());
         return user;
@@ -56,5 +59,11 @@ public class InMemoryUserStorage implements UserStorage {
     public void deleteUsers() {
         users.clear();
         log.info("Все пользователи удалены.");
+    }
+
+    private void setId(User user) {
+        if (user.getId() <= 0) {
+            user.setId(++id);
+        }
     }
 }
