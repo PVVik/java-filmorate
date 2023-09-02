@@ -21,7 +21,7 @@ public class FilmControllerTest {
     private FilmStorage storage = new InMemoryFilmStorage();
     private UserStorage userStorage = new InMemoryUserStorage();
     private UserService userService = new UserService(userStorage);
-    private FilmService service = new FilmService(storage);
+    private FilmService service = new FilmService(storage, userService);
     private FilmController controller = new FilmController(service);
     private final Film film = new Film(1, "Movie", "/////////////////////////////",
             LocalDate.of(2020, 2, 2), 120, new HashSet<>());
