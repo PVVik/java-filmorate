@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.time.LocalDate;
 import java.util.Objects;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -17,6 +18,19 @@ public class User {
     private String login;
     private String name;
     private LocalDate birthday;
+    private Set<Integer> friends;
+
+    public void addFriend(Integer id) {
+        friends.add(id);
+    }
+
+    public void removeFriend(Integer id) {
+        friends.remove(id);
+    }
+
+    public int getFriendsQuantity() {
+        return friends.size();
+    }
 
     @Override
     public boolean equals(Object o) {
