@@ -80,5 +80,11 @@ public class FilmService {
         if (film.getLikes() == null) {
             film.setLikes(new HashSet<>());
         }
+        if (film.getGenre() == null) {
+            throw new ValidationException("Неверный жанр.");
+        }
+        if (film.getMpa() == null) {
+            throw new ValidationException("Неверный рейтинг");
+        }
     }
 }
