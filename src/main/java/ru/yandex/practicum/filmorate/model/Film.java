@@ -17,6 +17,17 @@ public class Film {
     private LocalDate releaseDate;
     private long duration;
     private Set<Integer> likes;
+    private Set<Genre> genre;
+    private Mpa mpa;
+
+    public Film(int id, String name, String description, LocalDate releaseDate, long duration, Set<Integer> likes) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+        this.likes = likes;
+    }
 
     public void addLike(Integer userId) {
         likes.add(userId);
