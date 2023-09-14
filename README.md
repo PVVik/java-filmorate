@@ -7,11 +7,16 @@ Template repository for Filmorate project.
 Получение пользователя с ID = 1:
 
 SELECT*
+
 FROM users
+
 WHERE user_id = 1;
+
 
 Получение фильма с ID = 10:
 
 SELECT*
+
 FROM films
+
 WHERE film_id = 10.
