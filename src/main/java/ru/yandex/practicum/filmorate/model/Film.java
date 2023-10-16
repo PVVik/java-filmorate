@@ -1,33 +1,34 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import jakarta.validation.constraints.*;
+import lombok.*;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class Film {
-
-    private int id;
+    private Long id;
+    @NotNull
     private String name;
+    @Size(min = 1, max = 200)
     private String description;
     private LocalDate releaseDate;
+    @Positive
     private long duration;
-    private Set<Integer> likes;
+    @NotNull
+    private Mpa mpa;
+    private Set<Genre> genres = new HashSet<>();
 
-    public void addLike(Integer userId) {
-        likes.add(userId);
-    }
-
-    public void removeLike(Integer userId) {
-        likes.remove(userId);
-    }
-
-    public int getLikesQuantity() {
-        return likes.size();
+    public Film(String name, String description, LocalDate releaseDate, long duration) {
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
     }
 
     @Override
@@ -35,7 +36,7 @@ public class Film {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Film film = (Film) o;
-        return id == film.id;
+        return Objects.equals(id, film.id);
     }
 
     @Override

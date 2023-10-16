@@ -1,35 +1,29 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import jakarta.validation.constraints.*;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.Objects;
-import java.util.Set;
 
 @Data
 @AllArgsConstructor
-@Builder
+@NoArgsConstructor
 public class User {
-
-    private int id;
+    private Long id;
+    @Email
     private String email;
+    @NotNull
     private String login;
     private String name;
+    @PastOrPresent
     private LocalDate birthday;
-    private Set<Integer> friends;
 
-    public void addFriend(Integer id) {
-        friends.add(id);
-    }
-
-    public void removeFriend(Integer id) {
-        friends.remove(id);
-    }
-
-    public int getFriendsQuantity() {
-        return friends.size();
+    public User(String email, String login, String name, LocalDate birthday) {
+        this.email = email;
+        this.login = login;
+        this.name = name;
+        this.birthday = birthday;
     }
 
     @Override
@@ -37,7 +31,7 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return id == user.id;
+        return Objects.equals(id, user.id);
     }
 
     @Override
