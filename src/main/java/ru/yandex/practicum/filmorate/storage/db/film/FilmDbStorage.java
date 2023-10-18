@@ -4,21 +4,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Like;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.db.mpa.MpaDao;
 import ru.yandex.practicum.filmorate.storage.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.storage.mapper.GenreMapper;
-import ru.yandex.practicum.filmorate.storage.mapper.MpaMapper;
 
 import java.sql.Date;
 import java.sql.ResultSet;
@@ -223,13 +218,6 @@ public class FilmDbStorage implements FilmStorage {
         return Mpa.builder()
                 .id(rs.getInt("mpa_id"))
                 .name(rs.getString("mpa_rating"))
-                .build();
-    }
-
-    private Like rowMapperForLikes(ResultSet rs) throws SQLException {
-        return Like.builder()
-                .filmId(rs.getLong("film_id"))
-                .userId(rs.getLong("user_id"))
                 .build();
     }
 }

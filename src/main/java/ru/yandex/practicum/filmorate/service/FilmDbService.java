@@ -21,7 +21,6 @@ import ru.yandex.practicum.filmorate.storage.db.user.UserStorage;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -160,10 +159,6 @@ public class FilmDbService {
         if (film.getDescription().length() > 200 || film.getDescription().length() == 0) {
             throw new ValidationException("Description increases 200 symbols or empty");
         }
-    }
-
-    private int compare(Film film, Film otherFilm) {
-        return Integer.compare(likeDao.countLikes(otherFilm.getId()), likeDao.countLikes(film.getId()));
     }
 
     private void likeChecker(Long filmId, Long userId) {
