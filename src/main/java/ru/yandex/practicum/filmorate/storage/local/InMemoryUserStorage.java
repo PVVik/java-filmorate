@@ -58,39 +58,6 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public void addFriend(Long userId, Long friendId) {
-        if (friends.containsKey(userId)) {
-            friends.put(userId, friendId);
-        } else {
-            throw new ObjectNotFoundException("Attempt to add to a friends list non-existing user " + userId);
-        }
-    }
-
-    @Override
-    public void removeFriend(Long userId, Long friendId) {
-        if (friends.containsKey(userId)) {
-            friends.remove(userId, friendId);
-        } else {
-            throw new ObjectNotFoundException("Attempt to remove from friends list non-existing user " + userId);
-        }
-    }
-
-    @Override
-    public List<User> getFriends(Long userId) {
-        List<User> friendsList = new ArrayList<>();
-        if (friends.containsKey(userId)) {
-            for (Map.Entry<Long, Long> entry : friends.entrySet()) {
-                Long id = entry.getKey();
-                if (id.equals(userId)) {
-                    User friend = getUserById(entry.getValue());
-                    friendsList.add(friend);
-                }
-            }
-        }
-        return friendsList;
-    }
-
-    @Override
     public boolean isContains(Long id) {
         return false;
     }

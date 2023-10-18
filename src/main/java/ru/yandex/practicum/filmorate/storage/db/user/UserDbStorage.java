@@ -71,21 +71,6 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public void addFriend(Long userId, Long friendId) {
-
-    }
-
-    @Override
-    public void removeFriend(Long userId, Long friendId) {
-
-    }
-
-    @Override
-    public List<User> getFriends(Long userId) {
-        return null;
-    }
-
-    @Override
     public boolean isContains(Long id) {
         log.debug("isContains({})", id);
         try {

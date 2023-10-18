@@ -25,6 +25,11 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
+    public List<Film> getPopular(Integer count) {
+        return null;
+    }
+
+    @Override
     public Film createFilm(Film film) {
         validate(film);
         films.put(film.getId(), film);

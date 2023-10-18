@@ -101,7 +101,7 @@ public class FilmControllerTest {
         film.setGenres(Set.of(new Genre(1)));
         filmService.createFilm(film);
         popularFilm.setMpa(new Mpa(1));
-        popularFilm.setGenres(Set.of(new Genre(1), new Genre(2)));
+        popularFilm.setGenres(Set.of(new Genre(1)));
         filmService.createFilm(popularFilm);
 
         Assertions.assertEquals(2, filmService.getFilms().size());

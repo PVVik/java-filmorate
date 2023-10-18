@@ -3,10 +3,13 @@ package ru.yandex.practicum.filmorate.storage.db.film;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 public interface FilmStorage {
+
+    List<Film> getPopular(Integer count);
 
     Film createFilm(Film film);
 

@@ -89,11 +89,7 @@ public class FilmDbService {
 
     public Collection<Film> getPopularMovies(Integer count) {
         log.debug("getPopularMovies({})", count);
-        List<Film> popularMovies = getFilms()
-                .stream()
-                .sorted(this::compare)
-                .limit(count)
-                .collect(Collectors.toList());
+        List<Film> popularMovies = filmStorage.getPopular(count);
         log.trace("These are the most popular movies: {}", popularMovies);
         return popularMovies;
     }
