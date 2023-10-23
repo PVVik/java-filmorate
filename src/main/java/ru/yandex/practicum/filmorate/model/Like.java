@@ -7,16 +7,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class Mpa {
+public class Like {
     @NotNull
-    private Integer id;
+    private Long filmId;
     @NotNull
-    private String name;
-
-    public Mpa(Integer id) {
-        this.id = id;
-    }
+    private Long userId;
 }

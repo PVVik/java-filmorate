@@ -2,21 +2,17 @@ package ru.yandex.practicum.filmorate.model;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class Mpa {
+public class Friendship {
     @NotNull
-    private Integer id;
+    private Long id;
     @NotNull
-    private String name;
-
-    public Mpa(Integer id) {
-        this.id = id;
-    }
+    private Long friendId;
+    @NotNull
+    private boolean isFriend;
 }
