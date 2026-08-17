@@ -2,18 +2,23 @@ package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 @RequestMapping("/users")
 @Slf4j
 public class UserController {
 
-    private final Map<Long, User> users = new HashMap<>();
+    private final Map<Long, User> users = new ConcurrentHashMap<>();
 
     @PostMapping
     public User addUser(@RequestBody @Valid User user) {
@@ -31,17 +36,17 @@ public class UserController {
 
     @PutMapping
     public User updateUser(@RequestBody @Valid User user) {
-        if (!users.containsKey(user.getId())) {
+        if (!isExists(user)) {
             log.warn("Пользователь с переданным id {} не найден при обновлении", user.getId());
             throw new NoSuchElementException("Пользователя с переданным id не существует");
         }
         User oldUser = users.get(user.getId());
 
-        if (user.getEmail() != null) {
+        if (StringUtils.hasText(user.getEmail())) {
             oldUser.setEmail(user.getEmail());
             log.info("Обновили email пользователя с id {}", oldUser.getId());
         }
-        if (user.getLogin() != null) {
+        if (StringUtils.hasText(user.getLogin())) {
             oldUser.setLogin(user.getLogin());
             log.info("Обновили логин пользователя с id {}", oldUser.getId());
         }
@@ -49,7 +54,7 @@ public class UserController {
             oldUser.setBirthday(user.getBirthday());
             log.info("Обновили дату рождения пользователя с id {}", oldUser.getId());
         }
-        if (user.getName() != null) {
+        if (StringUtils.hasText(user.getName())) {
             oldUser.setName(user.getName());
             log.info("Обновили имя пользователя с id {}", oldUser.getId());
         }
@@ -100,5 +105,9 @@ public class UserController {
                 throw new ValidationException("Пользователь с таким email уже существует");
             }
         }
+    }
+
+    private boolean isExists(User user) {
+        return users.containsKey(user.getId());
     }
 }

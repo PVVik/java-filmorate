@@ -2,13 +2,18 @@ package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 @RequestMapping("/films")
@@ -16,7 +21,7 @@ import java.util.*;
 public class FilmController {
 
     public static final LocalDate MIN_DATE_FOR_FILM = LocalDate.of(1895, Month.DECEMBER, 28);
-    private final Map<Long, Film> films = new HashMap<>();
+    private final Map<Long, Film> films = new ConcurrentHashMap<>();
 
     @PostMapping
     public Film addFilm(@RequestBody @Valid Film film) {
@@ -31,17 +36,17 @@ public class FilmController {
 
     @PutMapping
     public Film updateFilm(@RequestBody @Valid Film film) {
-        if (!films.containsKey(film.getId())) {
+        if (!isExists(film)) {
             log.warn("Фильм с переданным id {} не найден при обновлении", film.getId());
             throw new NoSuchElementException("Фильма с переданным id не существует");
         }
         Film oldFilm = films.get(film.getId());
 
-        if (film.getName() != null) {
+        if (StringUtils.hasText(film.getName())) {
             oldFilm.setName(film.getName());
             log.info("Обновили название фильма с id {}", film.getId());
         }
-        if (film.getDescription() != null) {
+        if (StringUtils.hasText(film.getDescription())) {
             oldFilm.setDescription(film.getDescription());
             log.info("Обновили описание фильма с id {}", film.getId());
         }
@@ -98,5 +103,9 @@ public class FilmController {
             log.warn("Не передана продолжительность при создании фильма");
             throw new ValidationException("При создании фильма продолжительность не может быть пустой");
         }
+    }
+
+    private boolean isExists(Film film) {
+        return films.containsKey(film.getId());
     }
 }
