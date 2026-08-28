@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.controller;
+package ru.yandex.practicum.filmorate.storage;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
@@ -9,28 +9,30 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.Set;
 
-public class UserControllerTest {
+public class UserStorageTest {
 
-    private UserController userController;
+    private UserStorage userStorage;
     private final User rightUser = User.builder().email("email@email.ru").login("login").name("name")
             .birthday(LocalDate.of(2000, Month.APRIL, 22)).build();
     private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     @BeforeEach
     public void beforeEach() {
-        userController = new UserController();
+        userStorage = new InMemoryUserStorage();
     }
 
     @Test
     @DisplayName("Метод должен создать пользователя с корректными данными")
     public void addUser_shouldAddUser() {
-        User addedUser = userController.addUser(rightUser);
+        User addedUser = userStorage.addUser(rightUser);
 
         Assertions.assertEquals(1, addedUser.getId());
         Assertions.assertEquals(rightUser, addedUser);
@@ -51,7 +53,7 @@ public class UserControllerTest {
     public void addUser_shouldGetErrorWithEmptyEmail() {
         User user = User.builder().login("login").build();
 
-        Assertions.assertThrows(ValidationException.class, () -> userController.addUser(user));
+        Assertions.assertThrows(ValidationException.class, () -> userStorage.addUser(user));
     }
 
     @Test
@@ -70,7 +72,7 @@ public class UserControllerTest {
         User user = User.builder().email("email@email.ru")
                 .birthday(LocalDate.of(1999, Month.FEBRUARY, 11)).build();
 
-        Assertions.assertThrows(ValidationException.class, () -> userController.addUser(user));
+        Assertions.assertThrows(ValidationException.class, () -> userStorage.addUser(user));
     }
 
     @Test
@@ -89,7 +91,7 @@ public class UserControllerTest {
     public void addUser_shouldGetErrorWithEmptyBirthday() {
         User user = User.builder().email("email@email.ru").login("login").build();
 
-        Assertions.assertThrows(ValidationException.class, () -> userController.addUser(user));
+        Assertions.assertThrows(ValidationException.class, () -> userStorage.addUser(user));
     }
 
     @Test
@@ -99,22 +101,22 @@ public class UserControllerTest {
                 .birthday(LocalDate.of(1997, Month.MARCH, 25)).build();
 
         Assertions.assertEquals(User.builder().id(1).email("email@email.ru").login("login").name("login")
-                .birthday(LocalDate.of(1997, Month.MARCH, 25)).build(), userController.addUser(user));
+                .birthday(LocalDate.of(1997, Month.MARCH, 25)).build(), userStorage.addUser(user));
     }
 
     @Test
     @DisplayName("Метод должен вернуть ошибку при дублировании email")
     public void addUser_shouldGetErrorWithRepeatEmail() {
-        userController.addUser(rightUser);
+        userStorage.addUser(rightUser);
 
-        Assertions.assertThrows(ValidationException.class, () -> userController.addUser(rightUser));
+        Assertions.assertThrows(ValidationException.class, () -> userStorage.addUser(rightUser));
     }
 
     @Test
     @DisplayName("Метод должен успешно обновить email")
     public void updateUser_shouldUpdateEmail() {
-        userController.addUser(rightUser);
-        User user = userController.updateUser(User.builder().id(1).email("newEmail@email.ru").build());
+        userStorage.addUser(rightUser);
+        User user = userStorage.updateUser(User.builder().id(1).email("newEmail@email.ru").build());
 
         Assertions.assertEquals("newEmail@email.ru", user.getEmail());
     }
@@ -122,8 +124,8 @@ public class UserControllerTest {
     @Test
     @DisplayName("Метод должен успешно обновить логин")
     public void updateUser_shouldUpdateLogin() {
-        userController.addUser(rightUser);
-        User user = userController.updateUser(User.builder().id(1).login("newLogin").build());
+        userStorage.addUser(rightUser);
+        User user = userStorage.updateUser(User.builder().id(1).login("newLogin").build());
 
         Assertions.assertEquals("newLogin", user.getLogin());
     }
@@ -131,8 +133,8 @@ public class UserControllerTest {
     @Test
     @DisplayName("Метод должен успешно обновить имя")
     public void updateUser_shouldUpdateName() {
-        userController.addUser(rightUser);
-        User user = userController.updateUser(User.builder().id(1).name("newName").build());
+        userStorage.addUser(rightUser);
+        User user = userStorage.updateUser(User.builder().id(1).name("newName").build());
 
         Assertions.assertEquals("newName", user.getName());
     }
@@ -140,8 +142,8 @@ public class UserControllerTest {
     @Test
     @DisplayName("Метод должен успешно обновить дату рождения")
     public void updateUser_shouldUpdateBirthday() {
-        userController.addUser(rightUser);
-        User user = userController.updateUser(User.builder().id(1)
+        userStorage.addUser(rightUser);
+        User user = userStorage.updateUser(User.builder().id(1)
                 .birthday(LocalDate.of(1957, Month.MAY, 27)).build());
 
         Assertions.assertEquals(LocalDate.of(1957, Month.MAY, 27), user.getBirthday());
@@ -150,14 +152,14 @@ public class UserControllerTest {
     @Test
     @DisplayName("Метод должен вернуть пустой список, если нет созданных пользователей")
     public void getUsers_shouldGetEmptyList() {
-        Assertions.assertEquals(new ArrayList<>(), userController.getUsers());
+        Assertions.assertEquals(new ArrayList<>(), userStorage.getUsers());
     }
 
     @Test
     @DisplayName("Метод должен вернуть корректный список")
     public void getUsers_shouldGetCorrectList() {
-        userController.addUser(rightUser);
+        userStorage.addUser(rightUser);
 
-        Assertions.assertEquals(1, userController.getUsers().size());
+        Assertions.assertEquals(1, userStorage.getUsers().size());
     }
 }
