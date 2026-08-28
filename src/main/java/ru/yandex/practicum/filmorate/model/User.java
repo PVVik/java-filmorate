@@ -4,7 +4,6 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -27,16 +26,10 @@ public class User {
     private Set<Long> friendsIds;
 
     public void setFriend(long friendId) {
-        if (friendId == this.getId()) {
-            throw new ValidationException("Пользователь не может добавить с друзья сам себя");
-        }
         friendsIds.add(friendId);
     }
 
     public void deleteFriend(long friendId) {
-        if (friendId == this.getId()) {
-            throw new ValidationException("Пользователь не может удалить сам себя из друзей");
-        }
         friendsIds.remove(friendId);
     }
 }

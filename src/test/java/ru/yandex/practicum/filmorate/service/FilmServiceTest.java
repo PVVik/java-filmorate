@@ -11,7 +11,6 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -23,7 +22,7 @@ public class FilmServiceTest {
 
     private FilmService filmService;
     private FilmStorage filmStorage;
-    private UserStorage userStorage;
+    private UserService userService;
     private final Film film1 = Film.builder().name("name1").description("des1").duration(101L)
             .releaseDate(LocalDate.of(1999, Month.MAY, 1)).build();
     private final Film film2 = Film.builder().name("name2").description("des2").duration(102L)
@@ -38,15 +37,15 @@ public class FilmServiceTest {
     @BeforeEach
     public void beforeEach() {
         filmStorage = new InMemoryFilmStorage();
-        userStorage = new InMemoryUserStorage();
-        filmService = new FilmService(filmStorage, userStorage);
+        userService = new UserService(new InMemoryUserStorage());
+        filmService = new FilmService(filmStorage, userService);
     }
 
     @Test
     @DisplayName("Метод должен успешно добавить лайк")
     public void addLike_shouldAddLike() {
         filmStorage.addFilm(film1);
-        userStorage.addUser(user1);
+        userService.addUser(user1);
         filmService.addLike(film1.getId(), user1.getId());
 
         Assertions.assertEquals(1, film1.getLikes().size());
@@ -56,7 +55,7 @@ public class FilmServiceTest {
     @Test
     @DisplayName("Метод должен вернуть ошибку, так как фильм не найден")
     public void addLike_shouldGetErrorFilmNotExists() {
-        userStorage.addUser(user1);
+        userService.addUser(user1);
 
         Assertions.assertThrows(NotFoundException.class, () -> filmService.addLike(1, user1.getId()));
     }
@@ -73,7 +72,7 @@ public class FilmServiceTest {
     @DisplayName("Метод должен успешно удалить лайк")
     public void deleteLike_shouldDeleteLike() {
         filmStorage.addFilm(film1);
-        userStorage.addUser(user1);
+        userService.addUser(user1);
         filmService.addLike(film1.getId(), user1.getId());
         filmService.deleteLike(film1.getId(), user1.getId());
 
@@ -83,7 +82,7 @@ public class FilmServiceTest {
     @Test
     @DisplayName("Метод должен вернуть ошибку, так как фильм не найден")
     public void deleteLike_shouldGetErrorFilmNotExists() {
-        userStorage.addUser(user1);
+        userService.addUser(user1);
 
         Assertions.assertThrows(NotFoundException.class, () -> filmService.deleteLike(1, user1.getId()));
     }
@@ -104,8 +103,8 @@ public class FilmServiceTest {
         Film addedFilm2 = filmStorage.addFilm(film2);
         filmStorage.addFilm(film3);
 
-        userStorage.addUser(user1);
-        userStorage.addUser(user2);
+        userService.addUser(user1);
+        userService.addUser(user2);
 
         film1.addLke(user1.getId());
         film1.addLke(user2.getId());

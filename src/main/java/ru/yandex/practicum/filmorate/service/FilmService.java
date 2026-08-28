@@ -3,13 +3,12 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -17,11 +16,11 @@ import java.util.stream.Collectors;
 public class FilmService {
 
     private final FilmStorage filmStorage;
-    private final UserStorage userStorage;
+    private final UserService userService;
 
     public void addLike(long filmId, long userId) {
         Film film = filmStorage.getFilmById(filmId);
-        User user = userStorage.getUserById(userId);
+        User user = userService.getUserById(userId);
 
         film.addLke(user.getId());
         filmStorage.updateFilm(film);
@@ -30,7 +29,12 @@ public class FilmService {
 
     public void deleteLike(long filmId, long userId) {
         Film film = filmStorage.getFilmById(filmId);
-        User user = userStorage.getUserById(userId);
+
+        if (!film.getLikes().contains(userId)) {
+            throw new NotFoundException(String.format("В списке лайков нет пользователя с id %d", userId));
+        }
+
+        User user = userService.getUserById(userId);
 
         film.deleteLike(user.getId());
         filmStorage.updateFilm(film);
@@ -38,10 +42,22 @@ public class FilmService {
     }
 
     public List<Film> getPopularFilms(long count) {
-        log.info("Получили список популярных фильмов");
-        return filmStorage.getFilms().stream()
-                .sorted(Film::compareTo)
-                .limit(count)
-                .collect(Collectors.toList());
+        return filmStorage.getPopularFilms(count);
+    }
+
+    public Film addFilm(Film film) {
+        return filmStorage.addFilm(film);
+    }
+
+    public Film updateFilm(Film film) {
+        return filmStorage.updateFilm(film);
+    }
+
+    public Film getFilmById(long filmId) {
+        return filmStorage.getFilmById(filmId);
+    }
+
+    public List<Film> getFilms() {
+        return filmStorage.getFilms();
     }
 }

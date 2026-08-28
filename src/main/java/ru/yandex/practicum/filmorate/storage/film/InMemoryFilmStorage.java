@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -80,6 +81,15 @@ public class InMemoryFilmStorage implements FilmStorage {
         log.info("Вернули фильм с id {}", filmId);
 
         return films.get(filmId);
+    }
+
+    @Override
+    public List<Film> getPopularFilms(long count) {
+        log.info("Получили список популярных фильмов");
+        return this.getFilms().stream()
+                .sorted(Film::compareTo)
+                .limit(count)
+                .collect(Collectors.toList());
     }
 
     private long getId() {

@@ -4,7 +4,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -31,9 +30,6 @@ public class Film implements Comparable<Film> {
     }
 
     public void deleteLike(long userId) {
-        if (!likes.contains(userId)) {
-            throw new NotFoundException(String.format("В списке лайков нет пользователя с id %d", userId));
-        }
         likes.remove(userId);
     }
 

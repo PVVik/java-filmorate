@@ -7,11 +7,9 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -81,6 +79,26 @@ public class InMemoryUserStorage implements UserStorage {
         }
         log.info("Получили пользователя с id {}", userId);
         return users.get(userId);
+    }
+
+    @Override
+    public List<User> getFriends(long userId) {
+        Set<Long> friendsIds = this.getUserById(userId).getFriendsIds();
+
+        log.info("Запрошен и возвращен список друзей пользователя {}", userId);
+        return this.getUsers().stream()
+                .filter(user -> friendsIds.contains(user.getId()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<User> getCommonFriends(long userId, long friendId) {
+        List<User> userFriends = this.getFriends(userId);
+
+        log.info("Запрошен и возвращен список общих друзей пользователей {} и {}", userId, friendId);
+        return this.getFriends(friendId).stream()
+                .filter(userFriends::contains)
+                .collect(Collectors.toList());
     }
 
     private long getId() {
