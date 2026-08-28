@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -22,4 +23,13 @@ public class User {
     private String name;
     @Past(message = "Передана некорректная дата рождения")
     private LocalDate birthday;
+    private Set<Long> friendsIds;
+
+    public void setFriend(long friendId) {
+        friendsIds.add(friendId);
+    }
+
+    public void deleteFriend(long friendId) {
+        friendsIds.remove(friendId);
+    }
 }

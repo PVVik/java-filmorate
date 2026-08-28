@@ -1,113 +1,55 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 @RequestMapping("/users")
 @Slf4j
+@RequiredArgsConstructor
 public class UserController {
 
-    private final Map<Long, User> users = new ConcurrentHashMap<>();
+    private final UserService userService;
 
     @PostMapping
     public User addUser(@RequestBody @Valid User user) {
-        validNotNull(user);
-        validEmail(user);
-        if (user.getName() == null || user.getName().isBlank()) {
-            addNameIfEmptyName(user);
-        }
-        user.setId(getId());
-        users.put(user.getId(), user);
-        log.info("Создали и добавили пользователя с id {}", user.getId());
-
-        return user;
+        return userService.addUser(user);
     }
 
     @PutMapping
     public User updateUser(@RequestBody @Valid User user) {
-        if (!isExists(user)) {
-            log.warn("Пользователь с переданным id {} не найден при обновлении", user.getId());
-            throw new NoSuchElementException("Пользователя с переданным id не существует");
-        }
-        User oldUser = users.get(user.getId());
-
-        if (StringUtils.hasText(user.getEmail())) {
-            oldUser.setEmail(user.getEmail());
-            log.info("Обновили email пользователя с id {}", oldUser.getId());
-        }
-        if (StringUtils.hasText(user.getLogin())) {
-            oldUser.setLogin(user.getLogin());
-            log.info("Обновили логин пользователя с id {}", oldUser.getId());
-        }
-        if (user.getBirthday() != null) {
-            oldUser.setBirthday(user.getBirthday());
-            log.info("Обновили дату рождения пользователя с id {}", oldUser.getId());
-        }
-        if (StringUtils.hasText(user.getName())) {
-            oldUser.setName(user.getName());
-            log.info("Обновили имя пользователя с id {}", oldUser.getId());
-        }
-
-        users.put(oldUser.getId(), oldUser);
-        log.info("Завершили обновление пользователя с id {}", oldUser.getId());
-
-        return oldUser;
+        return userService.updateUser(user);
     }
 
     @GetMapping
     public List<User> getUsers() {
-        return new ArrayList<>(users.values());
+        return userService.getUsers();
     }
 
-    private long getId() {
-        long maxId = users.keySet().stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
-
-        return ++maxId;
+    @PutMapping("/{userId}/friends/{friendId}")
+    public void addFriend(@PathVariable long userId, @PathVariable long friendId) {
+        userService.addFriend(userId, friendId);
     }
 
-    private void addNameIfEmptyName(User user) {
-        user.setName(user.getLogin());
+    @DeleteMapping("/{userId}/friends/{friendId}")
+    public void deleteFriend(@PathVariable long userId, @PathVariable long friendId) {
+        userService.deleteFriend(userId, friendId);
     }
 
-    private void validNotNull(User user) {
-        if (user.getEmail() == null) {
-            log.warn("Не передан email при создании фильма");
-            throw new ValidationException("email не может быть пустым");
-        }
-        if (user.getLogin() == null) {
-            log.warn("Не передан логин при создании фильма");
-            throw new ValidationException("login не может быть пустым");
-        }
-        if (user.getBirthday() == null) {
-            log.warn("Не передана дата рождения при создании фильма");
-            throw new ValidationException("Дата рождения не может быть пустой");
-        }
+    @GetMapping("/{userId}/friends")
+    public List<User> getUserFriends(@PathVariable long userId) {
+        return userService.getFriends(userId);
     }
 
-    private void validEmail(User user) {
-        for (User addedUser : users.values()) {
-            if (addedUser.getEmail().equals(user.getEmail())) {
-                log.warn("Дублирование email: {}", user.getEmail());
-                throw new ValidationException("Пользователь с таким email уже существует");
-            }
-        }
+    @GetMapping("/{userId}/friends/common/{friendId}")
+    public List<User> getCommonFriends(@PathVariable long userId, @PathVariable long friendId) {
+        return userService.getCommonFriends(userId, friendId);
     }
 
-    private boolean isExists(User user) {
-        return users.containsKey(user.getId());
-    }
 }
