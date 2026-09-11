@@ -8,16 +8,16 @@ Template repository for Filmorate project.
 ## Примеры запросов:
 
 ### Запрос на получение фильма по id:
-SELECT *
-FROM film
-WHERE film_id = 1;
+    SELECT * 
+    FROM film 
+    WHERE film_id = 1;
 
 ### Запрос на получение названий всех фильмов с рейтингом NC-17:
-SELECT DISTINCT f.name
-FROM film f
-JOIN mpa m ON m.mpa_id = f.mpa_id
-WHERE m.mpa_id = (
-    SELECT mpa_id
-    FROM mpa
-    WHERE mpa_name = 'NC-17'
-);
+    SELECT DISTINCT f.film_name 
+    FROM film f 
+    JOIN mpa m ON m.mpa_id = f.mpa_id 
+    WHERE m.mpa_id = ( 
+        SELECT mpa_id 
+        FROM mpa 
+        WHERE mpa_name = 'NC-17' 
+    );
