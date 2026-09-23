@@ -101,6 +101,16 @@ public class InMemoryUserStorage implements UserStorage {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public void addFriend(long userId, long friendId) {
+
+    }
+
+    @Override
+    public void deleteFriend(long userId, long friendId) {
+
+    }
+
     private long getId() {
         long maxId = users.keySet().stream()
                 .mapToLong(id -> id)
