@@ -28,4 +28,8 @@ public class MpaService {
         return MpaMapper.mapToDto(mpaStorage.getMpaById(mpaId));
     }
 
+    public void checkMpaExists(long mpaId) {
+        getMpaById(mpaId);
+    }
+
 }

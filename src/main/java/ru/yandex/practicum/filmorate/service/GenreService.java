@@ -4,10 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.GenreMapper;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -31,23 +31,30 @@ public class GenreService {
         return GenreMapper.mapToDto(genreStorage.getGenreById(genreId));
     }
 
-    public Set<GenreDto> getGenresByFilmId(long filmId) {
-        log.info("Вернули жанры фильма с id {}", filmId);
-
-        if (!genreStorage.getGenresByFilmId(filmId).isEmpty()) {
-            return genreStorage.getGenresByFilmId(filmId).stream()
-                    .map(GenreMapper::mapToDto)
-                    .collect(Collectors.toSet());
-        } else return new HashSet<>();
-    }
-
     public Set<Long> addFilmGenres(long filmId, Set<GenreDto> genres) {
-        Set<Long> genreIds = genres.stream()
+        var genreIds = genres.stream()
                 .map(GenreDto::getId)
                 .collect(Collectors.toSet());
 
         log.info("Добавили жанры к фильму с id {}", filmId);
 
         return genreStorage.addFilmGenres(filmId, genreIds);
+    }
+
+    public void checkGenresExists(Set<GenreDto> genres) {
+        var allGenres = getGenres();
+        var existingIds = allGenres.stream()
+                .map(GenreDto::getId)
+                .collect(Collectors.toSet());
+
+        var missingIds = genres.stream()
+                .map(GenreDto::getId)
+                .filter(id -> !existingIds.contains(id))
+                .toList();
+
+        if (!missingIds.isEmpty()) {
+            throw new NotFoundException(String.format("Жанра с id %d не существует", missingIds.getFirst()));
+        }
+
     }
 }

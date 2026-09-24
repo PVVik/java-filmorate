@@ -66,28 +66,6 @@ class GenreTests {
         assertThat(result).containsExactlyInAnyOrder(1L, 2L);
     }
 
-    @Test
-    @DisplayName("Метод должен вернуть жанры фильма, отсортированные по id")
-    public void getGenresByFilmId_shouldReturnSortedGenres() {
-        long filmId = createFilmForTest();
-        genreStorage.addFilmGenres(filmId, Set.of(3L, 1L, 2L));
-
-        Set<Genre> genres = genreStorage.getGenresByFilmId(filmId);
-
-        assertThat(genres).hasSize(3);
-        assertThat(genres).extracting(Genre::getId).containsExactly(1L, 2L, 3L);
-    }
-
-    @Test
-    @DisplayName("Метод должен вернуть пустой сет, если у фильма нет жанров")
-    public void getGenresByFilmId_shouldReturnEmpty_whenNoGenres() {
-        long filmId = createFilmForTest();
-
-        Set<Genre> genres = genreStorage.getGenresByFilmId(filmId);
-
-        assertThat(genres).isEmpty();
-    }
-
     private long createFilmForTest() {
         jdbc.update("INSERT INTO films (film_name, description, release_date, duration, mpa_id) " +
                         "VALUES (?, ?, ?, ?, ?)",

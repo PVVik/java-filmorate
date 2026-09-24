@@ -3,14 +3,14 @@ package ru.yandex.practicum.filmorate.storage.film;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.BaseRepository;
 
-import java.time.LocalDate;
-import java.util.List;
+import java.util.*;
 
 @Qualifier("FilmDbStorage")
 @Repository
@@ -52,47 +52,63 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     @Override
     public List<Film> getFilms() {
-        String query = "SELECT * FROM films";
+        String query = "SELECT f.film_id, f.film_name, f.description, f.release_date, " +
+                "f.duration, f.mpa_id, fg.genre_id " +
+                "FROM films AS f " +
+                "LEFT JOIN film_genres AS fg ON fg.film_id = f.film_id";
 
-        log.debug("SELECT * FROM films");
+        log.debug("SELECT f.film_id, f.film_name, f.description, f.release_date, " +
+                "f.duration, f.mpa_id, fg.genre_id " +
+                "FROM films AS f " +
+                "LEFT JOIN film_genres AS fg ON fg.film_id = f.film_id");
 
-        return findMany(query);
+        return jdbc.query(query, filmWithGenresExtractor);
     }
 
     @Override
     public Film getFilmById(long filmId) {
-        String filmQuery = "SELECT film_id, film_name, description, release_date, " +
-                "duration, mpa_id FROM films WHERE film_id = ?";
+        String query = "SELECT f.film_id, f.film_name, f.description, f.release_date, " +
+                "f.duration, f.mpa_id, fg.genre_id FROM films AS f " +
+                "LEFT JOIN film_genres AS fg ON fg.film_id = f.film_id " +
+                "WHERE f.film_id = ?";
 
-        log.debug("SELECT film_id, film_name, description, release_date, duration, mpa_id FROM films WHERE film_id = {}",
-                filmId);
+        log.debug("SELECT f.film_id, f.film_name, f.description, f.release_date, " +
+                "f.duration, f.mpa_id, fg.genre_id FROM films AS f " +
+                "LEFT JOIN film_genres AS fg ON fg.film_id = f.film_id " +
+                "WHERE f.film_id = {}", filmId);
 
-        return findOne(filmQuery, filmId).orElseThrow(() ->
-                new NotFoundException(String.format("Фильма с id %d не существует", filmId)));
+        var film = jdbc.query(query, filmWithGenresExtractor, filmId);
+
+        if (film == null || film.isEmpty()) {
+            throw new NotFoundException(String.format("Фильм с id %d не был найден", filmId));
+        } else return film.getFirst();
     }
 
     @Override
     public List<Film> getPopularFilms(long count) {
-        String query = "SELECT films.*, COUNT(likes.film_id) AS count FROM films " +
-                "LEFT JOIN likes ON likes.film_id = films.film_id " +
-                "GROUP BY films.film_id ORDER BY count DESC LIMIT ?";
+        String query = "SELECT f.film_id, f.film_name, f.description, f.release_date, " +
+                "f.duration, f.mpa_id, fg.genre_id, " +
+                "COUNT(DISTINCT l.user_id) AS like_count " +
+                "FROM films AS f " +
+                "LEFT JOIN likes AS l ON l.film_id = f.film_id " +
+                "LEFT JOIN film_genres AS fg ON fg.film_id = f.film_id " +
+                "GROUP BY f.film_id, f.film_name, f.description, f.release_date, " +
+                "f.duration, f.mpa_id, fg.genre_id " +
+                "ORDER BY like_count DESC " +
+                "LIMIT ?";
 
-        log.debug("SELECT films.*, COUNT(likes.film_id) AS count FROM films " +
-                "LEFT JOIN likes ON likes.film_id = films.film_id " +
-                "GROUP BY films.film_id ORDER BY count DESC LIMIT {}", count);
+        log.debug("SELECT f.film_id, f.film_name, f.description, f.release_date, " +
+                "f.duration, f.mpa_id, fg.genre_id, " +
+                "COUNT(DISTINCT l.user_id) AS like_count " +
+                "FROM films f " +
+                "LEFT JOIN likes l ON l.film_id = f.film_id " +
+                "LEFT JOIN film_genres fg ON fg.film_id = f.film_id " +
+                "GROUP BY f.film_id, f.film_name, f.description, f.release_date, " +
+                "f.duration, f.mpa_id, fg.genre_id " +
+                "ORDER BY like_count DESC " +
+                "LIMIT {}", count);
 
-        return jdbc.query(query, (rs, rowNum) -> {
-            long id = rs.getLong("film_id");
-            String name = rs.getString("film_name");
-            String description = rs.getString("description");
-            LocalDate releaseDate = rs.getDate("release_date").toLocalDate();
-            Long duration = rs.getLong("duration");
-            long mpaId = rs.getLong("mpa_id");
-            long count1 = rs.getLong("count");
-
-            return Film.builder().id(id).name(name).description(description).releaseDate(releaseDate)
-                    .duration(duration).mpaId(mpaId).build();
-        }, count);
+        return jdbc.query(query, filmWithGenresExtractor, count);
     }
 
     @Override
@@ -114,5 +130,34 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         delete(query, filmId, userId);
     }
 
+    private final ResultSetExtractor<List<Film>> filmWithGenresExtractor = rs -> {
+        Map<Long, Film> filmMap = new LinkedHashMap<>();
+        Set<Long> genreIds = new LinkedHashSet<>();
 
+        while (rs.next()) {
+            long filmId = rs.getLong("film_id");
+            Film film = filmMap.get(filmId);
+
+            if (film == null) {
+                film = Film.builder()
+                        .id(filmId)
+                        .name(rs.getString("film_name"))
+                        .description(rs.getString("description"))
+                        .releaseDate(rs.getDate("release_date").toLocalDate())
+                        .duration(rs.getLong("duration"))
+                        .mpaId(rs.getLong("mpa_id"))
+                        .genres(new LinkedHashSet<>())
+                        .likes(new HashSet<>())
+                        .build();
+                filmMap.put(filmId, film);
+            }
+
+            long genreId = rs.getLong("genre_id");
+            if (!rs.wasNull()) {
+                film.getGenres().add(genreId);
+            }
+        }
+
+        return new ArrayList<>(filmMap.values());
+    };
 }

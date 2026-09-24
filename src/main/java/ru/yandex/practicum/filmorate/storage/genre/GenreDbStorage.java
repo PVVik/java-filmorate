@@ -8,8 +8,9 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.BaseRepository;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Repository
 @Slf4j
@@ -36,21 +37,6 @@ public class GenreDbStorage extends BaseRepository<Genre> implements GenreStorag
 
         return findOne(query, genreId).orElseThrow(() ->
                 new NotFoundException(String.format("Жанра с id %d не существует", genreId)));
-    }
-
-    @Override
-    public Set<Genre> getGenresByFilmId(long filmId) {
-        String query = "SELECT genre.* FROM genre " +
-                "JOIN film_genres ON film_genres.genre_id = genre.genre_id " +
-                "WHERE film_genres.film_id = ?";
-        List<Genre> genres = findMany(query, filmId);
-
-        log.debug("SELECT genre.* FROM genre JOIN film_genres ON film_genres.genre_id = genre.genre_id " +
-                "WHERE film_genres.film_id = {}", filmId);
-
-        return genres.stream()
-                .sorted(Comparator.comparing(Genre::getId))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     @Override
