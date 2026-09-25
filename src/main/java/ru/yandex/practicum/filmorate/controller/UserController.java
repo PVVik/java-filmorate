@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.List;
@@ -18,18 +18,23 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public User addUser(@RequestBody @Valid User user) {
+    public UserDto addUser(@RequestBody @Valid UserDto user) {
         return userService.addUser(user);
     }
 
     @PutMapping
-    public User updateUser(@RequestBody @Valid User user) {
+    public UserDto updateUser(@RequestBody @Valid UserDto user) {
         return userService.updateUser(user);
     }
 
     @GetMapping
-    public List<User> getUsers() {
+    public List<UserDto> getUsers() {
         return userService.getUsers();
+    }
+
+    @GetMapping("/{userId}")
+    public UserDto getUserById(@PathVariable long userId) {
+        return userService.getUserById(userId);
     }
 
     @PutMapping("/{userId}/friends/{friendId}")
@@ -43,12 +48,12 @@ public class UserController {
     }
 
     @GetMapping("/{userId}/friends")
-    public List<User> getUserFriends(@PathVariable long userId) {
+    public List<UserDto> getUserFriends(@PathVariable long userId) {
         return userService.getFriends(userId);
     }
 
     @GetMapping("/{userId}/friends/common/{friendId}")
-    public List<User> getCommonFriends(@PathVariable long userId, @PathVariable long friendId) {
+    public List<UserDto> getCommonFriends(@PathVariable long userId, @PathVariable long friendId) {
         return userService.getCommonFriends(userId, friendId);
     }
 

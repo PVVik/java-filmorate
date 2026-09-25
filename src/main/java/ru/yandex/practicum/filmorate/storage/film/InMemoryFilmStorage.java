@@ -92,6 +92,16 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public void addLike(long filmId, long userId) {
+
+    }
+
+    @Override
+    public void deleteLike(long filmId, long userId) {
+
+    }
+
     private long getId() {
         long maxId = films.keySet().stream()
                 .mapToLong(id -> id)
