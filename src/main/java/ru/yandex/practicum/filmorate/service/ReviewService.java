@@ -81,7 +81,12 @@ public class ReviewService {
         var review = reviewStorage.getById(reviewId);
         userService.checkUserExists(userId);
 
-        reviewStorage.addVote(reviewId, userId, VoteType.LIKE);
+        if (reviewStorage.findVoteType(reviewId, userId).isPresent()) {
+            reviewStorage.updateVote(reviewId, userId, VoteType.LIKE);
+            changeUsefulIfAddVote(review, VoteType.LIKE);
+        } else {
+            reviewStorage.addVote(reviewId, userId, VoteType.LIKE);
+        }
 
         changeUsefulIfAddVote(review, VoteType.LIKE);
         reviewStorage.update(review);
@@ -93,7 +98,12 @@ public class ReviewService {
         var review = reviewStorage.getById(reviewId);
         userService.checkUserExists(userId);
 
-        reviewStorage.addVote(reviewId, userId, VoteType.DISLIKE);
+        if (reviewStorage.findVoteType(reviewId, userId).isPresent()) {
+            reviewStorage.updateVote(reviewId, userId, VoteType.DISLIKE);
+            changeUsefulIfAddVote(review, VoteType.DISLIKE);
+        } else {
+            reviewStorage.addVote(reviewId, userId, VoteType.DISLIKE);
+        }
 
         changeUsefulIfAddVote(review, VoteType.DISLIKE);
         reviewStorage.update(review);

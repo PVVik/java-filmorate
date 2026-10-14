@@ -4,6 +4,7 @@ import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.VoteType;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ReviewStorage {
 
@@ -22,4 +23,8 @@ public interface ReviewStorage {
     void addVote(long reviewId, long userId, VoteType voteType);
 
     void deleteVote(long reviewId, long userId, VoteType voteType);
+
+    void updateVote(long reviewId, long userId, VoteType voteType);
+
+    Optional<String> findVoteType(long reviewId, long userId);
 }

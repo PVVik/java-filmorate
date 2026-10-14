@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.review;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -10,6 +11,7 @@ import ru.yandex.practicum.filmorate.model.VoteType;
 import ru.yandex.practicum.filmorate.storage.BaseRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @Slf4j
@@ -108,6 +110,16 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
     }
 
     @Override
+    public void updateVote(long reviewId, long userId, VoteType voteType) {
+        String sql = "UPDATE review_votes SET vote_type = ? WHERE review_id = ? AND user_id = ?";
+
+        log.info("UPDATE review_votes SET vote_type = {} WHERE review_id = {} AND user_id = {}", voteType.toString(),
+                reviewId, userId);
+
+        jdbc.update(sql, voteType.toString(), reviewId, userId);
+    }
+
+    @Override
     public void deleteVote(long reviewId, long userId, VoteType voteType) {
         String query = "DELETE FROM review_votes WHERE review_id = ? AND user_id = ? AND vote_type = ?";
 
@@ -115,6 +127,17 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
                 reviewId, userId, voteType.toString());
 
         delete(query, reviewId, userId, voteType.toString());
+    }
+
+    @Override
+    public Optional<String> findVoteType(long reviewId, long userId) {
+        String sql = "SELECT vote_type FROM review_votes WHERE review_id = ? AND user_id = ?";
+        try {
+            String type = jdbc.queryForObject(sql, (rs, rowNum) -> rs.getString("vote_type"), reviewId, userId);
+            return Optional.ofNullable(type);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
 }
