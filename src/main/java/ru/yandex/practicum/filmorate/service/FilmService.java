@@ -24,7 +24,8 @@ public class FilmService {
     private final MpaService mpaService;
     private final GenreService genreService;
 
-    public FilmService(@Qualifier("FilmDbStorage") FilmStorage filmStorage, UserService userService, MpaService mpaService, GenreService genreService) {
+    public FilmService(@Qualifier("FilmDbStorage") FilmStorage filmStorage, UserService userService,
+                       MpaService mpaService, GenreService genreService) {
         this.filmStorage = filmStorage;
         this.userService = userService;
         this.mpaService = mpaService;
@@ -117,15 +118,15 @@ public class FilmService {
         return getFilmDtoWithGenresAndMpa(film, genreMap, mpaMap);
     }
 
+    public void checkFilmExists(long filmId) {
+        filmStorage.getFilmById(filmId);
+    }
+
     private void checkValidDate(FilmDto filmDto) {
         if (filmDto.getReleaseDate().isBefore(FilmStorage.MIN_DATE_FOR_FILM)) {
             log.warn("Получили исключение при вводе неверной даты релиза {}", filmDto.getReleaseDate());
             throw new ValidationException("Дата релиза должна быть позднее 28 декабря 1895 года");
         }
-    }
-
-    private void checkFilmExists(long filmId) {
-        filmStorage.getFilmById(filmId);
     }
 
     private FilmDto getFilmDtoWithGenresAndMpa(Film film, Map<Long, GenreDto> genreMap, Map<Long, MpaDto> mpaMap) {
