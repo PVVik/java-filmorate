@@ -17,19 +17,19 @@ public class ReviewMapper {
     }
 
     public static Review mapToUpdateEntity(Review review, ReviewDto reviewDto) {
-        if(StringUtils.hasText(reviewDto.getContent())) {
+        if (StringUtils.hasText(reviewDto.getContent())) {
             review.setContent(reviewDto.getContent());
         }
-        if(reviewDto.getUserId() != null) {
+        if (reviewDto.getUserId() != null) {
             review.setUserId(reviewDto.getUserId());
         }
-        if(reviewDto.getFilmId() != null) {
+        if (reviewDto.getFilmId() != null) {
             review.setFilmId(reviewDto.getFilmId());
         }
-        if(reviewDto.getIsPositive() != null) {
+        if (reviewDto.getIsPositive() != null) {
             review.setPositive(reviewDto.getIsPositive());
         }
-        if(reviewDto.getUseful() != null) {
+        if (reviewDto.getUseful() != null) {
             review.setUseful(reviewDto.getUseful());
         }
         return review;
