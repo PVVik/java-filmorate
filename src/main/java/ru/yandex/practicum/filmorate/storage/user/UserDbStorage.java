@@ -30,6 +30,7 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
 
         long id = insert(query, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday());
         user.setId(id);
+
         return user;
     }
 
