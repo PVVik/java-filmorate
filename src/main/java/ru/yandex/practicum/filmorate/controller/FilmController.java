@@ -15,7 +15,7 @@ public class FilmController {
 
     private final FilmService filmService;
 
-    @PutMapping
+    @PostMapping
     public FilmDto addFilm(@RequestBody @Valid FilmDto filmDto) {
         return filmService.addFilm(filmDto);
     }
@@ -30,7 +30,7 @@ public class FilmController {
         return filmService.getFilms();
     }
 
-    @PostMapping("/{filmId}/like/{userId}")
+    @PutMapping("/{filmId}/like/{userId}")
     public void addLike(@PathVariable long filmId, @PathVariable long userId) {
         filmService.addLike(filmId, userId);
     }
