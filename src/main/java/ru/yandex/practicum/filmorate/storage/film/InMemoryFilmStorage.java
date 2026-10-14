@@ -7,10 +7,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -91,6 +88,19 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .limit(count)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<Film> getCommonFilms(long userId, long friendId) {
+        log.info("Получили список общих фильмов пользователей с id {} и {}", userId, friendId);
+
+        return getFilms().stream()
+                .filter(film -> film.getLikes() != null
+                        && film.getLikes().contains(userId)
+                        && film.getLikes().contains(friendId))
+                .sorted(Comparator.comparingLong((Film f) -> f.getLikes().size()).reversed())
+                .collect(Collectors.toList());
+    }
+
 
     @Override
     public void addLike(long filmId, long userId) {

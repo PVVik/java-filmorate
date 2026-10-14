@@ -112,6 +112,31 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     }
 
     @Override
+    public List<Film> getCommonFilms(long userId, long friendId) {
+        String query = """
+        SELECT f.film_id, f.film_name, f.description, f.release_date,
+               f.duration, f.mpa_id, fg.genre_id,
+               total_likes.like_count
+        FROM films AS f
+        JOIN (
+            SELECT film_id, COUNT(DISTINCT user_id) AS like_count
+            FROM likes
+            GROUP BY film_id
+        ) AS total_likes ON total_likes.film_id = f.film_id
+        JOIN likes AS l ON l.film_id = f.film_id AND l.user_id IN (?, ?)
+        LEFT JOIN film_genres AS fg ON fg.film_id = f.film_id
+        GROUP BY f.film_id, f.film_name, f.description, f.release_date,
+                 f.duration, f.mpa_id, total_likes.like_count, fg.genre_id
+        HAVING COUNT(DISTINCT l.user_id) = 2
+        ORDER BY total_likes.like_count DESC
+        """;
+
+        log.debug("Executing getCommonFilms for users {}, {}", userId, friendId);
+        return jdbc.query(query, filmWithGenresExtractor, userId, friendId);
+    }
+
+
+    @Override
     public void addLike(long filmId, long userId) {
         String query = "INSERT INTO likes (film_id, user_id) " +
                 "VALUES (?, ?)";

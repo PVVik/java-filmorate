@@ -61,6 +61,37 @@ public class FilmService {
                 .toList();
     }
 
+    public List<FilmDto> getCommonFilms(long userId, long friendId) {
+        userService.checkUserExists(userId);
+        userService.checkUserExists(friendId);
+
+        var genreMap = getGenreMap();
+        var mpaMap = getMpaMap();
+
+        var commonFilms = filmStorage.getCommonFilms(userId, friendId);
+        if (commonFilms == null) {
+            commonFilms = List.of();
+        }
+
+        log.info("Обработали запрос на общие фильмы: userId={}, friendId={}. Найдено фильмов: {}",
+                userId, friendId, commonFilms.size());
+
+        return commonFilms.stream()
+                .map(film -> getFilmDtoWithGenresAndMpa(film, genreMap, mpaMap))
+                .toList();
+    }
+
+    private Map<Long, GenreDto> getGenreMap() {
+        return genreService.getGenres().stream()
+                .collect(Collectors.toMap(GenreDto::getId, Function.identity()));
+    }
+
+    private Map<Long, MpaDto> getMpaMap() {
+        return mpaService.getMpas().stream()
+                .collect(Collectors.toMap(MpaDto::getId, Function.identity()));
+    }
+
+
     public FilmDto addFilm(FilmDto filmDto) {
         checkValidDate(filmDto);
         mpaService.checkMpaExists(filmDto.getMpa().getId());

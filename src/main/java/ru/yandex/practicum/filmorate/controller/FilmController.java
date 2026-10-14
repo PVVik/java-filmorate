@@ -30,7 +30,7 @@ public class FilmController {
         return filmService.getFilms();
     }
 
-    @PutMapping("/{filmId}/like/{userId}")
+    @PostMapping("/{filmId}/like/{userId}")
     public void addLike(@PathVariable long filmId, @PathVariable long userId) {
         filmService.addLike(filmId, userId);
     }
@@ -43,6 +43,11 @@ public class FilmController {
     @GetMapping("/popular")
     public List<FilmDto> getPopularFilms(@RequestParam(defaultValue = "10") String count) {
         return filmService.getPopularFilms(Integer.parseInt(count));
+    }
+
+    @GetMapping("/common")
+    public List<FilmDto> getCommonFilms(@RequestParam long userId, @RequestParam long friendId) {
+        return filmService.getCommonFilms(userId, friendId);
     }
 
     @GetMapping("/{filmId}")
