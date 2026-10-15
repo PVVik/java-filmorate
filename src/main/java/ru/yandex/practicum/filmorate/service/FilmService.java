@@ -81,17 +81,6 @@ public class FilmService {
                 .toList();
     }
 
-    private Map<Long, GenreDto> getGenreMap() {
-        return genreService.getGenres().stream()
-                .collect(Collectors.toMap(GenreDto::getId, Function.identity()));
-    }
-
-    private Map<Long, MpaDto> getMpaMap() {
-        return mpaService.getMpas().stream()
-                .collect(Collectors.toMap(MpaDto::getId, Function.identity()));
-    }
-
-
     public FilmDto addFilm(FilmDto filmDto) {
         checkValidDate(filmDto);
         mpaService.checkMpaExists(filmDto.getMpa().getId());
@@ -146,6 +135,16 @@ public class FilmService {
         log.info("Получили фильм по id {}", filmId);
 
         return getFilmDtoWithGenresAndMpa(film, genreMap, mpaMap);
+    }
+
+    private Map<Long, GenreDto> getGenreMap() {
+        return genreService.getGenres().stream()
+                .collect(Collectors.toMap(GenreDto::getId, Function.identity()));
+    }
+
+    private Map<Long, MpaDto> getMpaMap() {
+        return mpaService.getMpas().stream()
+                .collect(Collectors.toMap(MpaDto::getId, Function.identity()));
     }
 
     private void checkValidDate(FilmDto filmDto) {
