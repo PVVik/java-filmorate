@@ -17,6 +17,37 @@ import java.util.*;
 @Slf4j
 public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
+    private final ResultSetExtractor<List<Film>> filmWithGenresExtractor = rs -> {
+        Map<Long, Film> filmMap = new LinkedHashMap<>();
+        Set<Long> genreIds = new LinkedHashSet<>();
+
+        while (rs.next()) {
+            long filmId = rs.getLong("film_id");
+            Film film = filmMap.get(filmId);
+
+            if (film == null) {
+                film = Film.builder()
+                        .id(filmId)
+                        .name(rs.getString("film_name"))
+                        .description(rs.getString("description"))
+                        .releaseDate(rs.getDate("release_date").toLocalDate())
+                        .duration(rs.getLong("duration"))
+                        .mpaId(rs.getLong("mpa_id"))
+                        .genres(new LinkedHashSet<>())
+                        .likes(new HashSet<>())
+                        .build();
+                filmMap.put(filmId, film);
+            }
+
+            long genreId = rs.getLong("genre_id");
+            if (!rs.wasNull()) {
+                film.getGenres().add(genreId);
+            }
+        }
+
+        return new ArrayList<>(filmMap.values());
+    };
+
     public FilmDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);
     }
@@ -112,6 +143,30 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     }
 
     @Override
+    public List<Film> getCommonFilms(long userId, long friendId) {
+        String query = """
+                SELECT f.film_id, f.film_name, f.description, f.release_date,
+                       f.duration, f.mpa_id, fg.genre_id,
+                       total_likes.like_count
+                FROM films AS f
+                JOIN (
+                    SELECT film_id, COUNT(DISTINCT user_id) AS like_count
+                    FROM likes
+                    GROUP BY film_id
+                ) AS total_likes ON total_likes.film_id = f.film_id
+                JOIN likes AS l ON l.film_id = f.film_id AND l.user_id IN (?, ?)
+                LEFT JOIN film_genres AS fg ON fg.film_id = f.film_id
+                GROUP BY f.film_id, f.film_name, f.description, f.release_date,
+                         f.duration, f.mpa_id, total_likes.like_count, fg.genre_id
+                HAVING COUNT(DISTINCT l.user_id) = 2
+                ORDER BY total_likes.like_count DESC
+                """;
+
+        log.debug("Executing getCommonFilms for users {}, {}", userId, friendId);
+        return jdbc.query(query, filmWithGenresExtractor, userId, friendId);
+    }
+
+    @Override
     public void addLike(long filmId, long userId) {
         String query = "INSERT INTO likes (film_id, user_id) " +
                 "VALUES (?, ?)";
@@ -129,35 +184,4 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
         delete(query, filmId, userId);
     }
-
-    private final ResultSetExtractor<List<Film>> filmWithGenresExtractor = rs -> {
-        Map<Long, Film> filmMap = new LinkedHashMap<>();
-        Set<Long> genreIds = new LinkedHashSet<>();
-
-        while (rs.next()) {
-            long filmId = rs.getLong("film_id");
-            Film film = filmMap.get(filmId);
-
-            if (film == null) {
-                film = Film.builder()
-                        .id(filmId)
-                        .name(rs.getString("film_name"))
-                        .description(rs.getString("description"))
-                        .releaseDate(rs.getDate("release_date").toLocalDate())
-                        .duration(rs.getLong("duration"))
-                        .mpaId(rs.getLong("mpa_id"))
-                        .genres(new LinkedHashSet<>())
-                        .likes(new HashSet<>())
-                        .build();
-                filmMap.put(filmId, film);
-            }
-
-            long genreId = rs.getLong("genre_id");
-            if (!rs.wasNull()) {
-                film.getGenres().add(genreId);
-            }
-        }
-
-        return new ArrayList<>(filmMap.values());
-    };
 }
