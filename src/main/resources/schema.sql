@@ -5,6 +5,8 @@ DROP TABLE IF EXISTS film_genres CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS friendship CASCADE;
 DROP TABLE IF EXISTS likes CASCADE;
+DROP TABLE IF EXISTS reviews CASCADE;
+DROP TABLE IF EXISTS review_votes CASCADE;
 
 CREATE TABLE IF NOT EXISTS mpa (
     mpa_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -66,4 +68,25 @@ CREATE TABLE IF NOT EXISTS likes (
     CONSTRAINT fk_film_likes FOREIGN KEY (film_id) REFERENCES films(film_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_user_likes FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT uq_likes UNIQUE (film_id, user_id)
-    );
+);
+
+CREATE TABLE IF NOT EXISTS reviews (
+    review_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    content TEXT NOT NULL,
+    is_positive BOOLEAN NOT NULL,
+    user_id BIGINT NOT NULL,
+    film_id BIGINT NOT NULL,
+    useful BIGINT NOT NULL,
+    CONSTRAINT fk_reviews_users FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    CONSTRAINT fk_reviews_films FOREIGN KEY (film_id) REFERENCES films(film_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS review_votes (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    review_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    vote_type VARCHAR(10) NOT NULL CHECK (vote_type IN ('LIKE', 'DISLIKE')),
+    CONSTRAINT unique_user_review_vote UNIQUE (review_id, user_id),
+    CONSTRAINT fk_reviews_review_votes FOREIGN KEY (review_id) REFERENCES reviews(review_id) ON DELETE CASCADE,
+    CONSTRAINT fk_users_review_votes FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
