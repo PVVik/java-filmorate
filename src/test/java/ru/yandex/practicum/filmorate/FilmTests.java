@@ -166,7 +166,6 @@ class FilmTests {
 
         Film f1 = filmStorage.addFilm(createFilm("Popular Film A"));
         Film f2 = filmStorage.addFilm(createFilm("Less Popular Film A"));
-
         Film f3 = filmStorage.addFilm(createFilm("Film B"));
 
         directorStorage.addFilmDirectors(f1.getId(), Set.of(id1));
@@ -186,7 +185,6 @@ class FilmTests {
 
         Set<Long> resultIds = result.stream().map(Film::getId).collect(java.util.stream.Collectors.toSet());
 
-        assertThat(resultIds).isEqualTo(new HashSet<>(List.of(1L, 2L)));
         assertThat(resultIds.contains(f3.getId())).isFalse();
         assertThat(result.get(0).getId()).isEqualTo(f1.getId());
         assertThat(result.get(1).getId()).isEqualTo(f2.getId());

@@ -9,10 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.service.GenreService;
-import ru.yandex.practicum.filmorate.service.MpaService;
-import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.service.*;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.time.LocalDate;
@@ -39,6 +36,9 @@ class FilmServiceTest {
 
     @Mock
     private GenreService genreService;
+
+    @Mock
+    private DirectorService directorService;
 
     @InjectMocks
     private FilmService filmService;
