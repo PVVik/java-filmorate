@@ -52,8 +52,8 @@ public class FilmMapper {
             }
         }
 
-        if (filmDto.getDirector() != null) {
-            for (DirectorDto d : filmDto.getDirector()) {
+        if (filmDto.getDirectors() != null) {
+            for (DirectorDto d : filmDto.getDirectors()) {
                 directors.add(d.getId());
             }
         }

@@ -94,8 +94,8 @@ public class FilmService {
             genreService.checkGenresExists(filmDto.getGenres());
         }
 
-        if (filmDto.getDirector() != null) {
-            directorService.checkDirectorExists(filmDto.getDirector());
+        if (filmDto.getDirectors() != null) {
+            directorService.checkDirectorExists(filmDto.getDirectors());
         }
 
         var film = filmStorage.addFilm(FilmMapper.mapToFilm(filmDto));
@@ -107,8 +107,8 @@ public class FilmService {
             film.setGenres(new HashSet<>());
         }
 
-        if (filmDto.getDirector() != null && !filmDto.getDirector().isEmpty()) {
-            var filmDirectors = directorService.addFilmDirectors(film.getId(), filmDto.getDirector());
+        if (filmDto.getDirectors() != null && !filmDto.getDirectors().isEmpty()) {
+            var filmDirectors = directorService.addFilmDirectors(film.getId(), filmDto.getDirectors());
             film.setDirectors(filmDirectors);
         } else {
             film.setDirectors(new HashSet<>());
@@ -122,6 +122,18 @@ public class FilmService {
     public FilmDto updateFilm(FilmDto filmDto) {
         var film = filmStorage.getFilmById(filmDto.getId());
         var updateFilm = FilmMapper.mapToUpdateFilm(film, filmDto);
+
+        if (filmDto.getDirectors() != null) {
+            directorService.checkDirectorExists(filmDto.getDirectors());
+            directorService.removeFilmDirectors(updateFilm.getId()); // удаляем старые связи
+
+            if (!filmDto.getDirectors().isEmpty()) {
+                var newDirectors = directorService.addFilmDirectors(updateFilm.getId(), filmDto.getDirectors());
+                updateFilm.setDirectors(newDirectors);
+            } else {
+                updateFilm.setDirectors(new HashSet<>());
+            }
+        }
 
         log.info("Обновили фильм с id {}", updateFilm.getId());
 
@@ -233,8 +245,8 @@ public class FilmService {
                     .map(directorMap::get)
                     .filter(Objects::nonNull)
                     .collect(Collectors.toCollection(LinkedHashSet::new));
-            dto.setDirector(filmDirectors);
-        } else dto.setDirector(new LinkedHashSet<>());
+            dto.setDirectors(filmDirectors);
+        } else dto.setDirectors(new LinkedHashSet<>());
 
         return dto;
     }

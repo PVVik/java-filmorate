@@ -84,4 +84,13 @@ public class DirectorDbStorage extends BaseRepository<Director> implements Direc
 
         return new HashSet<>(directors);
     }
+
+    @Override
+    public void removeFilmDirectors(long filmId) {
+        String query = "DELETE FROM film_directors WHERE film_id = ?";
+
+        log.debug("DELETE FROM film_directors WHERE film_id = {}", filmId);
+
+        jdbc.update(query, filmId);
+    }
 }

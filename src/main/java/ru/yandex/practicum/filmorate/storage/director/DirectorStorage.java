@@ -19,4 +19,6 @@ public interface DirectorStorage {
 
     Set<Long> addFilmDirectors(long filmId, Set<Long> directors);
 
+    void removeFilmDirectors(long filmId);
+
 }

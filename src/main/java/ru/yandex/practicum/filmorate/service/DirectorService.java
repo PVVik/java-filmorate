@@ -87,4 +87,10 @@ public class DirectorService {
 
         return directorStorage.addFilmDirectors(filmId, directorIds);
     }
+
+    public void removeFilmDirectors(long filmId) {
+        log.info("Удалили режиссеров фильма {}", filmId);
+
+        directorStorage.removeFilmDirectors(filmId);
+    }
 }
