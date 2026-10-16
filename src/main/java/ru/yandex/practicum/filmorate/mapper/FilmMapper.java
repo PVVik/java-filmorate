@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.mapper;
 
 import org.springframework.util.StringUtils;
+import ru.yandex.practicum.filmorate.dto.DirectorDto;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
 import ru.yandex.practicum.filmorate.dto.MpaDto;
@@ -14,6 +15,7 @@ public class FilmMapper {
     public static FilmDto mapToDto(Film film) {
         MpaDto mpaDto;
         Set<GenreDto> genreDtos = new HashSet<>();
+        Set<DirectorDto> directorDtos = new HashSet<>();
 
         if (film.getMpaId() != null) {
             mpaDto = new MpaDto(film.getMpaId());
@@ -24,13 +26,21 @@ public class FilmMapper {
                 genreDtos.add(new GenreDto(gId));
             }
         }
+
+        if (film.getDirectors() != null) {
+            for (Long dId : film.getDirectors()) {
+                directorDtos.add(new DirectorDto(dId));
+            }
+        }
+
         return new FilmDto(film.getId(), film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(),
-                mpaDto, genreDtos);
+                mpaDto, genreDtos, directorDtos);
     }
 
     public static Film mapToFilm(FilmDto filmDto) {
         Long mpaId;
         Set<Long> genres = new HashSet<>();
+        Set<Long> directors = new HashSet<>();
 
         if (filmDto.getMpa() != null) {
             mpaId = filmDto.getMpa().getId();
@@ -42,9 +52,15 @@ public class FilmMapper {
             }
         }
 
+        if (filmDto.getDirector() != null) {
+            for (DirectorDto d : filmDto.getDirector()) {
+                directors.add(d.getId());
+            }
+        }
+
         return Film.builder().name(filmDto.getName()).description(filmDto.getDescription())
                 .releaseDate(filmDto.getReleaseDate()).duration(filmDto.getDuration())
-                .mpaId(mpaId).genres(genres).build();
+                .mpaId(mpaId).genres(genres).directors(directors).build();
     }
 
     public static Film mapToUpdateFilm(Film film, FilmDto filmDto) {

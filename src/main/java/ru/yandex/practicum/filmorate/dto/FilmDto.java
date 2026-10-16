@@ -25,9 +25,10 @@ public class FilmDto {
     private Long duration;
     private MpaDto mpa;
     private Set<GenreDto> genres;
+    private Set<DirectorDto> director;
 
     public FilmDto(long id, String name, String description, LocalDate releaseDate, Long duration, MpaDto mpa,
-                   Set<GenreDto> genres) {
+                   Set<GenreDto> genres, Set<DirectorDto> directors) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -35,6 +36,7 @@ public class FilmDto {
         this.duration = duration;
         this.mpa = mpa;
         this.genres = genres;
+        this.director = directors;
     }
 
 }

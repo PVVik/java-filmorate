@@ -7,6 +7,8 @@ DROP TABLE IF EXISTS friendship CASCADE;
 DROP TABLE IF EXISTS likes CASCADE;
 DROP TABLE IF EXISTS reviews CASCADE;
 DROP TABLE IF EXISTS review_votes CASCADE;
+DROP TABLE IF EXISTS directors CASCADE;
+DROP TABLE IF EXISTS film_directors CASCADE;
 
 CREATE TABLE IF NOT EXISTS mpa (
     mpa_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -89,4 +91,18 @@ CREATE TABLE IF NOT EXISTS review_votes (
     CONSTRAINT unique_user_review_vote UNIQUE (review_id, user_id),
     CONSTRAINT fk_reviews_review_votes FOREIGN KEY (review_id) REFERENCES reviews(review_id) ON DELETE CASCADE,
     CONSTRAINT fk_users_review_votes FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS directors (
+    director_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    director_name VARCHAR NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS film_directors (
+    film_director_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    film_id BIGINT,
+    director_id BIGINT,
+    CONSTRAINT fk_film_directors FOREIGN KEY (film_id) REFERENCES films(film_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_directors_film FOREIGN KEY (director_id) REFERENCES directors(director_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT uq_film_directors UNIQUE (film_id, director_id)
 );
