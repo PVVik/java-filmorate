@@ -20,6 +20,7 @@ public class Film implements Comparable<Film> {
     private Set<Long> likes;
     private Long mpaId;
     private Set<Long> genres;
+    private Set<Long> directors;
 
     @Override
     public int compareTo(Film o) {
