@@ -137,11 +137,11 @@ public class FilmService {
 
         return getFilmDtoWithGenresAndMpa(film, genreMap, mpaMap);
     }
-  
+
     public void checkFilmExists(long filmId) {
         filmStorage.getFilmById(filmId);
     }
- 
+
     private Map<Long, GenreDto> getGenreMap() {
         return genreService.getGenres().stream()
                 .collect(Collectors.toMap(GenreDto::getId, Function.identity()));
@@ -150,6 +150,7 @@ public class FilmService {
     private Map<Long, MpaDto> getMpaMap() {
         return mpaService.getMpas().stream()
                 .collect(Collectors.toMap(MpaDto::getId, Function.identity()));
+    }
 
     private void checkValidDate(FilmDto filmDto) {
         if (filmDto.getReleaseDate().isBefore(FilmStorage.MIN_DATE_FOR_FILM)) {
@@ -179,4 +180,9 @@ public class FilmService {
         return dto;
     }
 
+    public void deleteFilm(long filmId) {
+        checkFilmExists(filmId);
+        filmStorage.deleteFilm(filmId);
+        log.info("Удалили фильм с id {}", filmId);
+    }
 }

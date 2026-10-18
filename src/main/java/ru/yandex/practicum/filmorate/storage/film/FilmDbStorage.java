@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.BaseRepository;
@@ -183,5 +184,15 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         log.debug("DELETE FROM likes WHERE film_id = {} AND user_id = {}", filmId, userId);
 
         delete(query, filmId, userId);
+    }
+
+    @Override
+    @Transactional
+    public void deleteFilm(long filmId) {
+        log.debug("Удаление фильма с id {}", filmId);
+
+        delete("DELETE FROM likes WHERE film_id = ?", filmId);
+        delete("DELETE FROM film_genres WHERE film_id = ?", filmId);
+        delete("DELETE FROM films WHERE film_id = ?", filmId);
     }
 }
