@@ -8,12 +8,16 @@ import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.director.DirectorDbStorage;
+import ru.yandex.practicum.filmorate.storage.director.DirectorRowMapper;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmRowMapper;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -21,11 +25,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @JdbcTest
 @AutoConfigureTestDatabase
-@Import({FilmDbStorage.class, FilmRowMapper.class})
+@Import({FilmDbStorage.class, FilmRowMapper.class, DirectorDbStorage.class, DirectorRowMapper.class})
 class FilmTests {
 
     @Autowired
     private FilmDbStorage filmStorage;
+
+    @Autowired
+    private DirectorDbStorage directorStorage;
 
     @Autowired
     private JdbcTemplate jdbc;
@@ -145,6 +152,41 @@ class FilmTests {
                 "SELECT COUNT(*) FROM likes WHERE film_id = ? AND user_id = ?",
                 Long.class, film.getId(), u1);
         assertThat(afterDelete).isEqualTo(0L);
+    }
+
+    @Test
+    @DisplayName("getByDirectorId должен вернуть фильмы режиссёра с сортировкой по лайкам и датой")
+    public void getByDirectorId_shouldReturnFilmsOfDirector() {
+        Director d1 = Director.builder().name("Director A").build();
+        Director d2 = Director.builder().name("Director B").build();
+
+        long id1 = directorStorage.create(d1).getId();
+        long id2 = directorStorage.create(d2).getId();
+
+        Film f1 = filmStorage.addFilm(createFilm("Popular Film A"));
+        Film f2 = filmStorage.addFilm(createFilm("Less Popular Film A"));
+        Film f3 = filmStorage.addFilm(createFilm("Film B"));
+
+        directorStorage.addFilmDirectors(f1.getId(), Set.of(id1));
+        directorStorage.addFilmDirectors(f2.getId(), Set.of(id1));
+        directorStorage.addFilmDirectors(f3.getId(), Set.of(id2));
+
+        long u1 = createTestUser("u1@test.com", "u1", "User 1", LocalDate.of(1990, 1, 1));
+        long u2 = createTestUser("u2@test.com", "u2", "User 2", LocalDate.of(1991, 1, 1));
+
+        filmStorage.addLike(f1.getId(), u1);
+        filmStorage.addLike(f1.getId(), u2);
+        filmStorage.addLike(f2.getId(), u1);
+
+        List<Film> result = filmStorage.getByDirectorId(id1);
+
+        assertEquals(2, result.size());
+
+        Set<Long> resultIds = result.stream().map(Film::getId).collect(java.util.stream.Collectors.toSet());
+
+        assertThat(resultIds.contains(f3.getId())).isFalse();
+        assertThat(result.get(0).getId()).isEqualTo(f1.getId());
+        assertThat(result.get(1).getId()).isEqualTo(f2.getId());
     }
 
     private long createTestUser(String email, String login, String name, LocalDate birthday) {

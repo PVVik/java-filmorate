@@ -112,6 +112,11 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     }
 
+    @Override
+    public List<Film> getByDirectorId(long id) {
+        return List.of();
+    }
+
     private long getId() {
         long maxId = films.keySet().stream()
                 .mapToLong(id -> id)
