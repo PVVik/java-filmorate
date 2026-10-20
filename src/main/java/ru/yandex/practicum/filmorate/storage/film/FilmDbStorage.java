@@ -205,7 +205,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         log.debug("Удаление фильма с id {}", filmId);
         delete("DELETE FROM films WHERE film_id = ?", filmId);
     }
-   
+
     public List<Film> getByDirectorId(long id) {
         String query = """
                 SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration,
