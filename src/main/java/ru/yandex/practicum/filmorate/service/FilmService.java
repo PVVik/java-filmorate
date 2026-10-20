@@ -198,6 +198,12 @@ public class FilmService {
         filmStorage.getFilmById(filmId);
     }
 
+    public void deleteFilm(long filmId) {
+        checkFilmExists(filmId);
+        filmStorage.deleteFilm(filmId);
+        log.info("Удалили фильм с id {}", filmId);
+    }
+
     private Map<Long, GenreDto> getGenreMap() {
         return genreService.getGenres().stream()
                 .collect(Collectors.toMap(GenreDto::getId, Function.identity()));

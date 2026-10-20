@@ -125,4 +125,9 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
         delete(query, userId, friendId);
     }
 
+    @Override
+    public void deleteUser(long userId) {
+        log.debug("Удаление пользователя с id {}", userId);
+        delete("DELETE FROM users WHERE user_id = ?", userId);
+    }
 }

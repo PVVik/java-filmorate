@@ -91,6 +91,12 @@ public class UserService {
         return UserMapper.mapToDto(userStorage.getUserById(userId));
     }
 
+    public void deleteUser(long userId) {
+        checkUserExists(userId);
+        userStorage.deleteUser(userId);
+        log.info("Удалили пользователя с id {}", userId);
+    }
+
     public void checkUserExists(long userId) {
         getUserById(userId);
     }
