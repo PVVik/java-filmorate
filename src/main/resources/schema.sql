@@ -9,6 +9,7 @@ DROP TABLE IF EXISTS reviews CASCADE;
 DROP TABLE IF EXISTS review_votes CASCADE;
 DROP TABLE IF EXISTS directors CASCADE;
 DROP TABLE IF EXISTS film_directors CASCADE;
+DROP TABLE IF EXISTS events CASCADE;
 
 CREATE TABLE IF NOT EXISTS mpa (
     mpa_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -106,3 +107,16 @@ CREATE TABLE IF NOT EXISTS film_directors (
     CONSTRAINT fk_directors_film FOREIGN KEY (director_id) REFERENCES directors(director_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT uq_film_directors UNIQUE (film_id, director_id)
 );
+
+CREATE TABLE IF NOT EXISTS events (
+    event_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    entity_id BIGINT NOT NULL,
+    event_type VARCHAR(20) NOT NULL CHECK (event_type IN ('LIKE', 'REVIEW', 'FRIEND')),
+    operation VARCHAR(20) NOT NULL CHECK (operation IN ('REMOVE', 'ADD', 'UPDATE')),
+    event_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_events_users FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_events_user_id ON events (user_id);
+CREATE INDEX IF NOT EXISTS idx_events_event_timestamp ON events (event_timestamp DESC);
