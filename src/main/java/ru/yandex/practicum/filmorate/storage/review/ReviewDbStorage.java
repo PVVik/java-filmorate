@@ -26,7 +26,7 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
         String query = "INSERT INTO reviews (content, is_positive, user_id, film_id, useful) " +
                 "VALUES (?, ?, ?, ?, ?)";
 
-        log.info("INSERT INTO reviews (content, is_positive, user_id, film_id, useful) " +
+        log.debug("INSERT INTO reviews (content, is_positive, user_id, film_id, useful) " +
                         "VALUES ({}, {}, {}, {}, {})", review.getContent(), review.isPositive(), review.getUserId(),
                 review.getFilmId(), review.getUseful());
 
@@ -42,7 +42,7 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
         String query = "UPDATE reviews SET content = ?, is_positive = ?, user_id = ?, film_id = ?, useful = ? " +
                 "WHERE review_id = ?";
 
-        log.info("UPDATE reviews SET content = {}, is_positive = {}, user_id = {}, film_id = {}, useful = {} " +
+        log.debug("UPDATE reviews SET content = {}, is_positive = {}, user_id = {}, film_id = {}, useful = {} " +
                         "WHERE review_id = {}", review.getContent(), review.isPositive(), review.getUserId(), review.getFilmId(),
                 review.getUseful(), review.getReviewId());
 
@@ -56,7 +56,7 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
     public void delete(long reviewId) {
         String query = "DELETE FROM reviews WHERE review_id = ?";
 
-        log.info("DELETE FROM reviews WHERE review_id = {}", reviewId);
+        log.debug("DELETE FROM reviews WHERE review_id = {}", reviewId);
 
         delete(query, reviewId);
     }
@@ -66,7 +66,7 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
         String query = "SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id, r.useful " +
                 "FROM reviews AS r WHERE r.review_id = ?";
 
-        log.info("SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id, r.useful " +
+        log.debug("SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id, r.useful " +
                 "FROM reviews AS r WHERE r.review_id = {}", reviewId);
 
         return findOne(query, reviewId).orElseGet(() -> {
@@ -81,7 +81,7 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
         String query = "SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id, r.useful " +
                 "FROM reviews AS r WHERE r.film_id = ? LIMIT ?";
 
-        log.info("SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id, r.useful " +
+        log.debug("SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id, r.useful " +
                 "FROM reviews AS r WHERE r.film_id = {} LIMIT {}", filmId, limit);
 
         return findMany(query, filmId, limit);
@@ -92,7 +92,7 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
         String query = "SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id, r.useful " +
                 "FROM reviews AS r LIMIT ?";
 
-        log.info("SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id, r.useful " +
+        log.debug("SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id, r.useful " +
                 "FROM reviews AS r LIMIT {}", limit);
 
         return findMany(query, limit);
@@ -103,7 +103,7 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
         String query = "INSERT INTO review_votes (review_id, user_id, vote_type) " +
                 "VALUES (?, ?, ?)";
 
-        log.info("INSERT INTO review_votes (review_id, user_id, vote_type) " +
+        log.debug("INSERT INTO review_votes (review_id, user_id, vote_type) " +
                 "VALUES ({}, {}, {})", reviewId, userId, voteType.toString());
 
         insert(query, reviewId, userId, voteType.toString());
@@ -113,7 +113,7 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
     public void updateVote(long reviewId, long userId, VoteType voteType) {
         String sql = "UPDATE review_votes SET vote_type = ? WHERE review_id = ? AND user_id = ?";
 
-        log.info("UPDATE review_votes SET vote_type = {} WHERE review_id = {} AND user_id = {}", voteType.toString(),
+        log.debug("UPDATE review_votes SET vote_type = {} WHERE review_id = {} AND user_id = {}", voteType.toString(),
                 reviewId, userId);
 
         jdbc.update(sql, voteType.toString(), reviewId, userId);
@@ -123,7 +123,7 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
     public void deleteVote(long reviewId, long userId, VoteType voteType) {
         String query = "DELETE FROM review_votes WHERE review_id = ? AND user_id = ? AND vote_type = ?";
 
-        log.info("DELETE FROM review_votes WHERE review_id = {} AND user_id = {} AND vote_type = {}",
+        log.debug("DELETE FROM review_votes WHERE review_id = {} AND user_id = {} AND vote_type = {}",
                 reviewId, userId, voteType.toString());
 
         delete(query, reviewId, userId, voteType.toString());
