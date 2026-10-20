@@ -8,9 +8,8 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.storage.BaseRepository;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 @Slf4j
@@ -92,5 +91,22 @@ public class DirectorDbStorage extends BaseRepository<Director> implements Direc
         log.debug("DELETE FROM film_directors WHERE film_id = {}", filmId);
 
         jdbc.update(query, filmId);
+    }
+
+    @Override
+    public Set<Long> getExistingIds(Collection<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        String placeholders = String.join(",", Collections.nCopies(ids.size(), "?"));
+        String query = "SELECT director_id FROM directors WHERE director_id IN (" + placeholders + ")";
+
+        log.debug("SELECT director_id FROM directors WHERE director_id IN ({})",
+                String.join(", ", ids.stream().map(String::valueOf).toList()));
+
+        return jdbc.query(query, ids.toArray(), (rs, rowNum) -> rs.getLong("director_id"))
+                .stream()
+                .collect(Collectors.toSet());
     }
 }

@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -63,13 +64,18 @@ public class DirectorService {
     }
 
     public void checkDirectorExists(Set<DirectorDto> directors) {
-        var allDirectors = getAll();
-        var existingIds = allDirectors.stream()
-                .map(DirectorDto::getId)
-                .collect(Collectors.toSet());
+        if (directors == null || directors.isEmpty()) {
+            return;
+        }
 
-        var missingIds = directors.stream()
+        var requestedIds = directors.stream()
                 .map(DirectorDto::getId)
+                .filter(Objects::nonNull)
+                .toList();
+
+        var existingIds = directorStorage.getExistingIds(requestedIds);
+
+        var missingIds = requestedIds.stream()
                 .filter(id -> !existingIds.contains(id))
                 .toList();
 
