@@ -197,8 +197,8 @@ public class FilmService {
     public void checkFilmExists(long filmId) {
         filmStorage.getFilmById(filmId);
     }
-  
-     public void deleteFilm(long filmId) {
+
+    public void deleteFilm(long filmId) {
         checkFilmExists(filmId);
         filmStorage.deleteFilm(filmId);
         log.info("Удалили фильм с id {}", filmId);
@@ -257,7 +257,6 @@ public class FilmService {
         return dto;
     }
 
-   
     private void checkSortParameters(String[] sortBy) {
         List<String> s = Arrays.stream(sortBy)
                 .filter(string -> string.equals("year") || string.equals("likes"))
