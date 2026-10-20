@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.BaseRepository;
@@ -127,12 +126,8 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
     }
 
     @Override
-    @Transactional
     public void deleteUser(long userId) {
         log.debug("Удаление пользователя с id {}", userId);
-
-        delete("DELETE FROM likes WHERE user_id = ?", userId);
-        delete("DELETE FROM friendship WHERE user_id = ? OR friend_id = ?", userId, userId);
         delete("DELETE FROM users WHERE user_id = ?", userId);
     }
 }

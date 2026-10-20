@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS film_genres (
     film_genre_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     film_id BIGINT,
     genre_id BIGINT,
-    CONSTRAINT fk_film_genre FOREIGN KEY (film_id) REFERENCES films(film_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_film_genre FOREIGN KEY (film_id) REFERENCES films(film_id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_genre_film FOREIGN KEY (genre_id) REFERENCES genre(genre_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT uq_film_genre UNIQUE (film_id, genre_id)
 );
@@ -65,8 +65,8 @@ CREATE TABLE IF NOT EXISTS likes (
     likes_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     film_id BIGINT,
     user_id BIGINT,
-    CONSTRAINT fk_film_likes FOREIGN KEY (film_id) REFERENCES films(film_id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_user_likes FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_film_likes FOREIGN KEY (film_id) REFERENCES films(film_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_user_likes FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT uq_likes UNIQUE (film_id, user_id)
 );
 
