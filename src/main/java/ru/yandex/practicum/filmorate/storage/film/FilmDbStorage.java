@@ -129,34 +129,34 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     @Override
     public List<Film> getPopularFilms(long count, Long genreId, Integer year) {
         StringBuilder sql = new StringBuilder("""
-            SELECT f.film_id, f.film_name, f.description, f.release_date,
-                   f.duration, f.mpa_id, fg.genre_id, fd.director_id,
-                   COUNT(DISTINCT l.user_id) AS like_count
-            FROM films AS f
-            LEFT JOIN likes AS l ON l.film_id = f.film_id
-            LEFT JOIN film_genres AS fg ON fg.film_id = f.film_id
-            LEFT JOIN film_directors AS fd ON fd.film_id = f.film_id
-            """);
+                SELECT f.film_id, f.film_name, f.description, f.release_date,
+                       f.duration, f.mpa_id, fg.genre_id, fd.director_id,
+                       COUNT(DISTINCT l.user_id) AS like_count
+                FROM films AS f
+                LEFT JOIN likes AS l ON l.film_id = f.film_id
+                LEFT JOIN film_genres AS fg ON fg.film_id = f.film_id
+                LEFT JOIN film_directors AS fd ON fd.film_id = f.film_id
+                """);
 
         List<Object> params = new ArrayList<>();
 
-        if (genreId != null){
+        if (genreId != null) {
             sql.append(" WHERE fg.genre_id = ?");
             params.add(genreId);
         }
 
-        if(year != null){
+        if (year != null) {
             sql.append(genreId != null ? " AND " : " WHERE ");
             sql.append(" EXTRACT(YEAR FROM f.release_date) = ? ");
             params.add(year);
         }
 
         sql.append("""
-            GROUP BY f.film_id, f.film_name, f.description, f.release_date,
-                     f.duration, f.mpa_id, fg.genre_id, fd.director_id
-            ORDER BY like_count DESC
-            LIMIT ?
-            """);
+                GROUP BY f.film_id, f.film_name, f.description, f.release_date,
+                         f.duration, f.mpa_id, fg.genre_id, fd.director_id
+                ORDER BY like_count DESC
+                LIMIT ?
+                """);
         params.add(count);
 
         log.debug("SQL: {}", sql.toString());
