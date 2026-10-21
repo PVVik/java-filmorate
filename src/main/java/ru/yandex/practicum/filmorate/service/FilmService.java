@@ -53,7 +53,11 @@ public class FilmService {
     }
 
     public List<FilmDto> getPopularFilms(long count) {
-        var films = filmStorage.getPopularFilms(count);
+        return getPopularFilms(count, null, null);
+    }
+
+    public List<FilmDto> getPopularFilms(long count, Long genreId, Integer year) {
+        var films = filmStorage.getPopularFilms(count, genreId, year);
         var genreMap = getGenreMap();
         var mpaMap = getMpaMap();
         var directorMap = getDirectorMap();
