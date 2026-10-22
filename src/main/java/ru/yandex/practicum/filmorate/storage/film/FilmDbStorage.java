@@ -266,7 +266,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
                         WHERE l.film_id = f.film_id
                     ) AS like_count
                 FROM films AS f
-                JOIN film_directors AS fd ON fd.film_id = f.film_id
+                LEFT JOIN film_directors AS fd ON fd.film_id = f.film_id
                 LEFT JOIN film_genres AS fg ON fg.film_id = f.film_id
                 LEFT JOIN directors as d ON fd.director_id = d.director_id
                 """);
