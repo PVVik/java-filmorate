@@ -225,9 +225,9 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
                 SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration,
                     f.mpa_id, fg.genre_id, fd.director_id,
                     (
-                        SELECT COUNT(DISTINCT l2.user_id)
-                        FROM likes AS l2
-                        WHERE l2.film_id = f.film_id
+                        SELECT COUNT(DISTINCT l.user_id)
+                        FROM likes AS l
+                        WHERE l.film_id = f.film_id
                     ) AS like_count
                 FROM films AS f
                 JOIN film_directors AS fd ON fd.film_id = f.film_id
@@ -240,9 +240,9 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
                 SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration,
                     f.mpa_id, fg.genre_id, fd.director_id,
                     (
-                        SELECT COUNT(DISTINCT l2.user_id)
-                        FROM likes AS l2
-                        WHERE l2.film_id = f.film_id
+                        SELECT COUNT(DISTINCT l.user_id)
+                        FROM likes AS l
+                        WHERE l.film_id = f.film_id
                     ) AS like_count
                 FROM films AS f
                 JOIN film_directors AS fd ON fd.film_id = f.film_id
@@ -252,5 +252,45 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
                 """, id);
 
         return jdbc.query(query, filmWithGenresExtractorAndDirectors, id);
+    }
+
+    @Override
+    public List<Film> search(String query, List<String> by) {
+        StringBuilder sql = new StringBuilder("""
+                SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration,
+                    f.mpa_id, fg.genre_id, fd.director_id,
+                    (
+                        SELECT COUNT(DISTINCT l.user_id)
+                        FROM likes AS l
+                        WHERE l.film_id = f.film_id
+                    ) AS like_count
+                FROM films AS f
+                JOIN film_directors AS fd ON fd.film_id = f.film_id
+                LEFT JOIN film_genres AS fg ON fg.film_id = f.film_id
+                LEFT JOIN directors as d ON fd.director_id = d.director_id
+                """);
+        List<String> params = new ArrayList<>();
+
+        String cleanQuery = query.trim().toLowerCase();
+        String searchTerm = "%" + cleanQuery + "%";
+
+        if (by.size() == 2) {
+            sql.append(" WHERE LOWER(d.director_name) LIKE ? OR LOWER(f.film_name) LIKE ?");
+            params.add(searchTerm);
+            params.add(searchTerm);
+        } else {
+            if (by.contains("director")) {
+                sql.append(" WHERE LOWER(d.director_name) LIKE ?");
+                params.add(searchTerm);
+            } else if (by.contains("title")) {
+                sql.append(" WHERE LOWER(f.film_name) LIKE ?");
+                params.add(searchTerm);
+            }
+        }
+        sql.append(" ORDER BY like_count DESC");
+
+        log.debug(sql.toString());
+
+        return jdbc.query(sql.toString(), filmWithGenresExtractorAndDirectors, params.toArray());
     }
 }
