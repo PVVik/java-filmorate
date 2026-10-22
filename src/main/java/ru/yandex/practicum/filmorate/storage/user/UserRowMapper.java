@@ -7,8 +7,6 @@ import ru.yandex.practicum.filmorate.model.User;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.List;
 
 @Component
 public class UserRowMapper implements RowMapper<User> {
