@@ -4,6 +4,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.dto.EventDto;
+import ru.yandex.practicum.filmorate.service.EventService;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -18,6 +20,7 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final EventService eventService;
     private final FilmService filmService;
 
     @PostMapping
@@ -63,6 +66,11 @@ public class UserController {
     @DeleteMapping("/{userId}")
     public void deleteUser(@PathVariable long userId) {
         userService.deleteUser(userId);
+    }
+
+    @GetMapping("/{userId}/feed")
+    public List<EventDto> getUserFeed(@PathVariable long userId) {
+        return eventService.getFeed(userId);
     }
 
     @GetMapping("/{userId}/recommendations")

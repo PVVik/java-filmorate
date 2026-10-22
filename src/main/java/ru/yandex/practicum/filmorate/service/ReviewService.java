@@ -1,10 +1,12 @@
 package ru.yandex.practicum.filmorate.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.ReviewDto;
 import ru.yandex.practicum.filmorate.mapper.ReviewMapper;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.VoteType;
 import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
@@ -19,17 +21,21 @@ public class ReviewService {
     private final ReviewStorage reviewStorage;
     private final FilmService filmService;
     private final UserService userService;
+    private final EventService eventService;
 
+    @Transactional
     public ReviewDto create(ReviewDto reviewDto) {
         userService.checkUserExists(reviewDto.getUserId());
         filmService.checkFilmExists(reviewDto.getFilmId());
 
         var review = reviewStorage.create(ReviewMapper.mapToEntity(reviewDto));
+        eventService.addReviewEvent(review.getUserId(), review.getReviewId(), Operation.ADD);
 
         log.info("Создали отзыв с id {}", review.getReviewId());
         return ReviewMapper.mapToDto(review);
     }
 
+    @Transactional
     public ReviewDto update(ReviewDto reviewDto) {
         if (reviewDto.getFilmId() != null) {
             filmService.checkFilmExists(reviewDto.getFilmId());
@@ -41,8 +47,11 @@ public class ReviewService {
         var oldReview = reviewStorage.getById(reviewDto.getReviewId());
         var updateReview = ReviewMapper.mapToUpdateEntity(oldReview, reviewDto);
 
-        log.info("Обновили отзыв с id {}", updateReview.getReviewId());
-        return ReviewMapper.mapToDto(reviewStorage.update(updateReview));
+        var savedReview = reviewStorage.update(updateReview);
+        eventService.addReviewEvent(savedReview.getUserId(), savedReview.getReviewId(), Operation.UPDATE);
+
+        log.info("Обновили отзыв с id {}", savedReview.getReviewId());
+        return ReviewMapper.mapToDto(savedReview);
     }
 
     public ReviewDto getById(long id) {
@@ -69,13 +78,17 @@ public class ReviewService {
                 .toList();
     }
 
+    @Transactional
     public void delete(long id) {
         var review = reviewStorage.getById(id);
 
-        log.info("Удалили отзыв с id {}", review.getReviewId());
-
         reviewStorage.delete(review.getReviewId());
+
+        eventService.addReviewEvent(review.getUserId(), review.getReviewId(), Operation.REMOVE);
+
+        log.info("Удалили отзыв с id {} и создали событие REMOVE", review.getReviewId());
     }
+
 
     public void likeReview(long reviewId, long userId) {
         var review = reviewStorage.getById(reviewId);

@@ -42,13 +42,25 @@ public class BaseRepository<T> {
             return ps;
         }, keyHolder);
 
-        Long id = keyHolder.getKeyAs(Long.class);
+        Long id = resolveGeneratedKey(keyHolder);
 
         if (id != null) {
             return id;
         } else {
             throw new InternalServerException("Не удалось сохранить данные");
         }
+    }
+
+    private Long resolveGeneratedKey(GeneratedKeyHolder keyHolder) {
+        if (keyHolder.getKeyList().isEmpty()) {
+            return null;
+        }
+        for (Object value : keyHolder.getKeyList().get(0).values()) {
+            if (value instanceof Number number) {
+                return number.longValue();
+            }
+        }
+        return null;
     }
 
     protected void update(String query, Object... params) {

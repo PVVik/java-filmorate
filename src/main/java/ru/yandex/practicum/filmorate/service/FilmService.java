@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import ru.yandex.practicum.filmorate.dto.MpaDto;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.util.*;
@@ -26,29 +28,42 @@ public class FilmService {
     private final MpaService mpaService;
     private final GenreService genreService;
     private final DirectorService directorService;
+    private final EventService eventService;
 
-    public FilmService(@Qualifier("FilmDbStorage") FilmStorage filmStorage, UserService userService,
-                       MpaService mpaService, GenreService genreService, DirectorService directorService) {
+
+    public FilmService(
+            @Qualifier("FilmDbStorage") FilmStorage filmStorage,
+            UserService userService,
+            MpaService mpaService,
+            GenreService genreService,
+            DirectorService directorService,
+            EventService eventService
+    ) {
         this.filmStorage = filmStorage;
         this.userService = userService;
         this.mpaService = mpaService;
         this.genreService = genreService;
         this.directorService = directorService;
+        this.eventService = eventService;
     }
 
+    @Transactional
     public void addLike(long filmId, long userId) {
         checkFilmExists(filmId);
         userService.checkUserExists(userId);
 
         filmStorage.addLike(filmId, userId);
+        eventService.addLikeEvent(userId, filmId, Operation.ADD);
         log.info("Добавили лайк пользователя с id {} к фильму с id {}", userId, filmId);
     }
 
+    @Transactional
     public void deleteLike(long filmId, long userId) {
         checkFilmExists(filmId);
         userService.checkUserExists(userId);
 
         filmStorage.deleteLike(filmId, userId);
+        eventService.addLikeEvent(userId, filmId, Operation.REMOVE);
         log.info("Удалили лайк пользователя с id {} с фильма с id {}", userId, filmId);
     }
 
@@ -183,7 +198,7 @@ public class FilmService {
                         .map(FilmMapper::mapToDto)
                         .toList();
             } else if (stringsSortBy.length == 1 && stringsSortBy[0].equals("likes")) {
-                filmStorage.getByDirectorId(director.getId()).stream()
+                return filmStorage.getByDirectorId(director.getId()).stream()
                         .sorted(Comparator.comparing(f -> f.getLikes().size()))
                         .map(FilmMapper::mapToDto)
                         .toList();
@@ -254,6 +269,7 @@ public class FilmService {
         return directorService.getAll().stream()
                 .collect(Collectors.toMap(DirectorDto::getId, Function.identity()));
     }
+
 
     private void checkValidDate(FilmDto filmDto) {
         if (filmDto.getReleaseDate().isBefore(FilmStorage.MIN_DATE_FOR_FILM)) {
