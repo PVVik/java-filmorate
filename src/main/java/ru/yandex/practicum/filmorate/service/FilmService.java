@@ -138,7 +138,7 @@ public class FilmService {
         var film = filmStorage.getFilmById(filmDto.getId());
         var updateFilm = FilmMapper.mapToUpdateFilm(film, filmDto);
 
-        if(filmDto.getMpa() != null) {
+        if (filmDto.getMpa() != null) {
             mpaService.checkMpaExists(filmDto.getMpa().getId());
             updateFilm.setMpaId(filmDto.getMpa().getId());
         }
