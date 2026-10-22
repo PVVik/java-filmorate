@@ -256,6 +256,31 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     }
 
     @Override
+    public Set<Long> findLikedFilmIdsByUser(long userId) {
+        String sql = "SELECT film_id FROM likes WHERE user_id = ?";
+        log.debug("SELECT film_id FROM likes WHERE user_id = {}", userId);
+        return new HashSet<>(jdbc.queryForList(sql, Long.class, userId));
+    }
+
+    @Override
+    public Optional<Long> findMostSimilarUserId(long userId) {
+        String sql = """
+                SELECT l2.user_id
+                FROM likes AS l1
+                JOIN likes l2 ON l1.film_id = l2.film_id
+                WHERE
+                    l1.user_id = ?
+                    AND l2.user_id != ?
+                GROUP BY l2.user_id
+                ORDER BY COUNT(*) DESC
+                LIMIT 1
+                """;
+
+        List<Long> result = jdbc.queryForList(sql, Long.class, userId, userId);
+
+        return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
+    }
+
     public List<Film> search(String query, List<String> by) {
         StringBuilder sql = new StringBuilder("""
                 SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration,
