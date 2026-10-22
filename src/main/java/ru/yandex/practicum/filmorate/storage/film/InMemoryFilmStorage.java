@@ -174,4 +174,34 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .map(Film::getId)
                 .collect(Collectors.toSet());
     }
+
+    @Override
+    public Optional<Long> findMostSimilarUserId(long userId) {
+        Set<Long> userLiked = findLikedFilmIdsByUser(userId);
+        if (userLiked.isEmpty()) {
+            return Optional.empty();
+        }
+
+        long bestUserId = -1;
+        int bestCount = 0;
+
+        Set<Long> allUserIds = films.values().stream()
+                .flatMap(f -> f.getLikes().stream())
+                .collect(Collectors.toSet());
+
+        for (Long otherId : allUserIds) {
+            if (otherId == userId) continue;
+
+            Set<Long> otherLiked = findLikedFilmIdsByUser(otherId);
+            Set<Long> intersection = new HashSet<>(userLiked);
+            intersection.retainAll(otherLiked);
+
+            if (intersection.size() > bestCount) {
+                bestCount = intersection.size();
+                bestUserId = otherId;
+            }
+        }
+
+        return bestUserId == -1 ? Optional.empty() : Optional.of(bestUserId);
+    }
 }
