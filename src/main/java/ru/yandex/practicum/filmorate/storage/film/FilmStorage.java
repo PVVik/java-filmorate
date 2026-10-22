@@ -37,6 +37,6 @@ public interface FilmStorage {
     Set<Long> findLikedFilmIdsByUser(long userId);
 
     Optional<Long> findMostSimilarUserId(long userId);
-  
+
     List<Film> search(String query, List<String> by);
 }
