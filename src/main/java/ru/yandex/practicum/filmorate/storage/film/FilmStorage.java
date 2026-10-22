@@ -39,4 +39,5 @@ public interface FilmStorage {
     Optional<Long> findMostSimilarUserId(long userId);
 
     List<Film> search(String query, List<String> by);
+
 }

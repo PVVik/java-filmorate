@@ -22,6 +22,10 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
 
     @Override
     public User addUser(User user) {
+        if(user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
+
         String query = "INSERT INTO users (email, login, user_name, birthday) " +
                 "VALUES(?, ?, ?, ?)";
 
@@ -64,8 +68,7 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
 
     @Override
     public User getUserById(long userId) {
-        String query = "SELECT users.*, friendship.friend_id FROM users " +
-                "LEFT JOIN friendship ON users.user_id = friendship.user_id " +
+        String query = "SELECT users.* FROM users " +
                 "WHERE users.user_id = ?";
 
         log.debug("SELECT users.*, friendship.friend_id FROM users " +

@@ -138,15 +138,32 @@ public class FilmService {
         var film = filmStorage.getFilmById(filmDto.getId());
         var updateFilm = FilmMapper.mapToUpdateFilm(film, filmDto);
 
+        if(filmDto.getMpa() != null) {
+            mpaService.checkMpaExists(filmDto.getMpa().getId());
+            updateFilm.setMpaId(filmDto.getMpa().getId());
+        }
+
         if (filmDto.getDirectors() != null) {
             directorService.checkDirectorExists(filmDto.getDirectors());
-            directorService.removeFilmDirectors(updateFilm.getId()); // удаляем старые связи
+            directorService.removeFilmDirectors(updateFilm.getId());
 
             if (!filmDto.getDirectors().isEmpty()) {
                 var newDirectors = directorService.addFilmDirectors(updateFilm.getId(), filmDto.getDirectors());
                 updateFilm.setDirectors(newDirectors);
             } else {
                 updateFilm.setDirectors(new HashSet<>());
+            }
+        }
+
+        if (filmDto.getGenres() != null) {
+            genreService.checkGenresExists(filmDto.getGenres());
+            genreService.removeFilmGenres(filmDto.getId());
+
+            if (!filmDto.getGenres().isEmpty()) {
+                var newGenres = genreService.addFilmGenres(updateFilm.getId(), filmDto.getGenres());
+                updateFilm.setGenres(newGenres);
+            } else {
+                updateFilm.setGenres(new HashSet<>());
             }
         }
 

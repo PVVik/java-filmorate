@@ -78,12 +78,12 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     @Override
     public Film updateFilm(Film film) {
         String query = "UPDATE films SET film_name = ?, description = ?, release_date = ?, " +
-                "duration = ? WHERE film_id = ?";
+                "duration = ?, mpa_id = ? WHERE film_id = ?";
 
         log.debug("UPDATE films SET film_name = {}, description = {}, release_date = {}, duration = {} WHERE film_id = {}",
                 film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getId());
 
-        update(query, film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(),
+        update(query, film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getMpaId(),
                 film.getId());
         return film;
     }

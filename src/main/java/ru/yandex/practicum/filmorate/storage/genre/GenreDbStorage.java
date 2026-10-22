@@ -51,4 +51,13 @@ public class GenreDbStorage extends BaseRepository<Genre> implements GenreStorag
         return new HashSet<>(genres);
     }
 
+    @Override
+    public void removeFilmGenres(long filmId) {
+        String query = "DELETE FROM film_genres WHERE film_id = ?";
+
+        log.debug("DELETE FROM film_genres WHERE film_id = {}", filmId);
+
+        delete(query, filmId);
+    }
+
 }

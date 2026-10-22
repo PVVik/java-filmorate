@@ -57,4 +57,10 @@ public class GenreService {
         }
 
     }
+
+    public void removeFilmGenres(long filmId) {
+        log.info("Удалили режиссеров фильма {}", filmId);
+
+        genreStorage.removeFilmGenres(filmId);
+    }
 }
