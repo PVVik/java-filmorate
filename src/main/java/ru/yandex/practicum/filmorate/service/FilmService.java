@@ -4,10 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import ru.yandex.practicum.filmorate.dto.DirectorDto;
-import ru.yandex.practicum.filmorate.dto.FilmDto;
-import ru.yandex.practicum.filmorate.dto.GenreDto;
-import ru.yandex.practicum.filmorate.dto.MpaDto;
+import ru.yandex.practicum.filmorate.dto.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -272,4 +269,45 @@ public class FilmService {
         }
     }
 
+    public List<FilmDto> getRecommendations(long userId) {
+        log.info("Получение рекомендаций для пользователя {}", userId);
+
+        userService.checkUserExists(userId);
+
+        Set<Long> userLiked = filmStorage.findLikedFilmIdsByUser(userId);
+
+        if (userLiked.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Map<Long, Integer> intersectionCounts = new HashMap<>();
+
+        for (UserDto other : userService.getUsers()) {
+            if (other.getId() == userId) continue;
+
+            Set<Long> otherLiked = filmStorage.findLikedFilmIdsByUser(other.getId());
+
+            Set<Long> intersection = new HashSet<>(userLiked);
+            intersection.retainAll(otherLiked);
+
+            intersectionCounts.put(other.getId(), intersection.size());
+        }
+
+        Optional<Map.Entry<Long, Integer>> best = intersectionCounts.entrySet().stream()
+                .filter(e -> e.getValue() > 0)
+                .max(Map.Entry.comparingByValue());
+
+        if (best.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        long similarUserId = best.get().getKey();
+
+        Set<Long> similarLiked = filmStorage.findLikedFilmIdsByUser(similarUserId);
+        similarLiked.removeAll(userLiked);
+
+        return similarLiked.stream()
+                .map(this::getFilmById)
+                .collect(Collectors.toList());
+    }
 }

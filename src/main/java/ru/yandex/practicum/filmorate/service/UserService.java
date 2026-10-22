@@ -7,9 +7,10 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.util.List;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -100,4 +101,5 @@ public class UserService {
     public void checkUserExists(long userId) {
         getUserById(userId);
     }
+
 }

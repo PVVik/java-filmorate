@@ -253,4 +253,11 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
         return jdbc.query(query, filmWithGenresExtractorAndDirectors, id);
     }
+
+    @Override
+    public Set<Long> findLikedFilmIdsByUser(long userId) {
+        String sql = "SELECT film_id FROM likes WHERE user_id = ?";
+        log.debug("SELECT film_id FROM likes WHERE user_id = {}", userId);
+        return new HashSet<>(jdbc.queryForList(sql, Long.class, userId));
+    }
 }

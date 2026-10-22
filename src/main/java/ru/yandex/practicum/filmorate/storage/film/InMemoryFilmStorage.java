@@ -166,4 +166,12 @@ public class InMemoryFilmStorage implements FilmStorage {
     private boolean isExists(Film film) {
         return films.containsKey(film.getId());
     }
+
+    @Override
+    public Set<Long> findLikedFilmIdsByUser(long userId) {
+        return films.values().stream()
+                .filter(film -> film.getLikes().contains(userId))
+                .map(Film::getId)
+                .collect(Collectors.toSet());
+    }
 }

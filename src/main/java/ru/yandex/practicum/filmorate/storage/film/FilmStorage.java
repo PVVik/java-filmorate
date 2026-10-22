@@ -5,6 +5,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
+import java.util.Set;
 
 public interface FilmStorage {
 
@@ -31,4 +32,6 @@ public interface FilmStorage {
     void deleteFilm(long id);
 
     List<Film> getByDirectorId(long id);
+
+    Set<Long> findLikedFilmIdsByUser(long userId);
 }
