@@ -31,6 +31,4 @@ public interface FilmStorage {
     void deleteFilm(long id);
 
     List<Film> getByDirectorId(long id);
-
-    List<Film> search(String query, List<String> by);
 }

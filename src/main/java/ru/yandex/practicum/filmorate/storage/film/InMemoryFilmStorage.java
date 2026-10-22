@@ -128,11 +128,6 @@ public class InMemoryFilmStorage implements FilmStorage {
         return List.of();
     }
 
-    @Override
-    public List<Film> search(String query, List<String> by) {
-        return List.of();
-    }
-
     private long getId() {
         long maxId = films.keySet().stream()
                 .mapToLong(id -> id)

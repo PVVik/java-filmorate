@@ -52,6 +52,10 @@ public class FilmService {
         log.info("Удалили лайк пользователя с id {} с фильма с id {}", userId, filmId);
     }
 
+    public List<FilmDto> getPopularFilms(long count) {
+        return getPopularFilms(count, null, null);
+    }
+
     public List<FilmDto> getPopularFilms(long count, Long genreId, Integer year) {
         var films = filmStorage.getPopularFilms(count, genreId, year);
         var genreMap = getGenreMap();
@@ -202,18 +206,6 @@ public class FilmService {
         checkFilmExists(filmId);
         filmStorage.deleteFilm(filmId);
         log.info("Удалили фильм с id {}", filmId);
-    }
-
-    public List<FilmDto> search(String query, String by) {
-        String[] sortBy = by.split(",");
-        List<Film> findFilms = filmStorage.search(query, List.of(sortBy));
-        var genreMap = getGenreMap();
-        var mpaMap = getMpaMap();
-        var directorMap = getDirectorMap();
-
-        return findFilms.stream()
-                .map(film -> getFilmDtoWithGenresAndMpaAndDirectors(film, genreMap, mpaMap, directorMap))
-                .toList();
     }
 
     private Map<Long, GenreDto> getGenreMap() {
