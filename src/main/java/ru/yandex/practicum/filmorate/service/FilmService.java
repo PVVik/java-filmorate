@@ -67,8 +67,8 @@ public class FilmService {
         log.info("Удалили лайк пользователя с id {} с фильма с id {}", userId, filmId);
     }
 
-    public List<FilmDto> getPopularFilms(long count) {
-        var films = filmStorage.getPopularFilms(count);
+    public List<FilmDto> getPopularFilms(long count, Long genreId, Integer year) {
+        var films = filmStorage.getPopularFilms(count, genreId, year);
         var genreMap = getGenreMap();
         var mpaMap = getMpaMap();
         var directorMap = getDirectorMap();
@@ -219,6 +219,41 @@ public class FilmService {
         log.info("Удалили фильм с id {}", filmId);
     }
 
+    public List<FilmDto> search(String query, String by) {
+        String[] sortBy = by.split(",");
+        List<Film> findFilms = filmStorage.search(query, List.of(sortBy));
+        var genreMap = getGenreMap();
+        var mpaMap = getMpaMap();
+        var directorMap = getDirectorMap();
+
+        return findFilms.stream()
+                .map(film -> getFilmDtoWithGenresAndMpaAndDirectors(film, genreMap, mpaMap, directorMap))
+                .toList();
+    }
+
+    public List<FilmDto> getRecommendations(long userId) {
+        log.info("Получение рекомендаций для пользователя {}", userId);
+
+        userService.checkUserExists(userId);
+
+        Set<Long> userLiked = filmStorage.findLikedFilmIdsByUser(userId);
+
+        if (userLiked.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Optional<Long> bestUserId = filmStorage.findMostSimilarUserId(userId);
+        if (bestUserId.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Set<Long> similarLiked = filmStorage.findLikedFilmIdsByUser(bestUserId.get());
+        similarLiked.removeAll(userLiked);
+
+        return similarLiked.stream()
+                .map(this::getFilmById)
+                .collect(Collectors.toList());
+    }
 
     private Map<Long, GenreDto> getGenreMap() {
         return genreService.getGenres().stream()

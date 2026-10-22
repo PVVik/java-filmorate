@@ -81,12 +81,19 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopularFilms(long count) {
+    public List<Film> getPopularFilms(long count, Long genreId, Integer year) {
         log.info("Получили список популярных фильмов");
         return this.getFilms().stream()
+                .filter(f -> genreId == null || f.getGenres().contains(genreId))
+                .filter(f -> year == null || f.getReleaseDate().getYear() == year)
                 .sorted(Film::compareTo)
                 .limit(count)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Film> getPopularFilms(long count) {
+        return getPopularFilms(count, null, null);
     }
 
     @Override
@@ -118,6 +125,11 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     public List<Film> getByDirectorId(long id) {
+        return List.of();
+    }
+
+    @Override
+    public List<Film> search(String query, List<String> by) {
         return List.of();
     }
 
@@ -158,5 +170,43 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     private boolean isExists(Film film) {
         return films.containsKey(film.getId());
+    }
+
+    @Override
+    public Set<Long> findLikedFilmIdsByUser(long userId) {
+        return films.values().stream()
+                .filter(film -> film.getLikes().contains(userId))
+                .map(Film::getId)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Optional<Long> findMostSimilarUserId(long userId) {
+        Set<Long> userLiked = findLikedFilmIdsByUser(userId);
+        if (userLiked.isEmpty()) {
+            return Optional.empty();
+        }
+
+        long bestUserId = -1;
+        int bestCount = 0;
+
+        Set<Long> allUserIds = films.values().stream()
+                .flatMap(f -> f.getLikes().stream())
+                .collect(Collectors.toSet());
+
+        for (Long otherId : allUserIds) {
+            if (otherId == userId) continue;
+
+            Set<Long> otherLiked = findLikedFilmIdsByUser(otherId);
+            Set<Long> intersection = new HashSet<>(userLiked);
+            intersection.retainAll(otherLiked);
+
+            if (intersection.size() > bestCount) {
+                bestCount = intersection.size();
+                bestUserId = otherId;
+            }
+        }
+
+        return bestUserId == -1 ? Optional.empty() : Optional.of(bestUserId);
     }
 }
