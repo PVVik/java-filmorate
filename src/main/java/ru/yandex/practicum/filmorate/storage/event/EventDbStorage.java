@@ -52,11 +52,11 @@ public class EventDbStorage extends BaseRepository<Event> implements EventStorag
                        OR e.user_id IN (
                            SELECT f.friend_id
                            FROM friendship f
-                           WHERE f.user_id = ? AND f.is_confirmed = TRUE
+                           WHERE f.user_id = ?
                            UNION ALL
                            SELECT f.user_id
                            FROM friendship f
-                           WHERE f.friend_id = ? AND f.is_confirmed = TRUE
+                           WHERE f.friend_id = ?
                        )
                     ORDER BY e.event_timestamp ASC, e.event_id ASC
                     LIMIT ?

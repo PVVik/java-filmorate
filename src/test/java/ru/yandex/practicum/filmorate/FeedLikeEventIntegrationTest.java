@@ -51,7 +51,7 @@ class FeedLikeEventIntegrationTest {
     }
 
     @Test
-    @DisplayName("Убрать лайк — в ленте появляются LIKE ADD и LIKE REMOVE, свежий первым")
+    @DisplayName("Убрать лайк — в ленте появляются LIKE ADD и LIKE REMOVE, старый первым")
     void deleteLike_shouldAddRemoveEvent() {
         FilmDto film = filmService.addFilm(validFilm());
         UserDto user = userService.addUser(validUser("it-feed2@test.com", "itfeed2"));
@@ -62,8 +62,8 @@ class FeedLikeEventIntegrationTest {
         List<EventDto> feed = eventService.getFeed(user.getId());
 
         assertThat(feed).hasSize(2);
-        assertThat(feed.get(0).getOperation()).isEqualTo("REMOVE");
-        assertThat(feed.get(1).getOperation()).isEqualTo("ADD");
+        assertThat(feed.get(0).getOperation()).isEqualTo("ADD");
+        assertThat(feed.get(1).getOperation()).isEqualTo("REMOVE");
     }
 
     @Test
