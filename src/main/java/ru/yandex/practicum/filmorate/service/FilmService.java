@@ -4,7 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import ru.yandex.practicum.filmorate.dto.*;
+import ru.yandex.practicum.filmorate.dto.DirectorDto;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.dto.GenreDto;
+import ru.yandex.practicum.filmorate.dto.MpaDto;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -213,6 +216,30 @@ public class FilmService {
                 .toList();
     }
 
+    public List<FilmDto> getRecommendations(long userId) {
+        log.info("Получение рекомендаций для пользователя {}", userId);
+
+        userService.checkUserExists(userId);
+
+        Set<Long> userLiked = filmStorage.findLikedFilmIdsByUser(userId);
+
+        if (userLiked.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Optional<Long> bestUserId = filmStorage.findMostSimilarUserId(userId);
+        if (bestUserId.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Set<Long> similarLiked = filmStorage.findLikedFilmIdsByUser(bestUserId.get());
+        similarLiked.removeAll(userLiked);
+
+        return similarLiked.stream()
+                .map(this::getFilmById)
+                .collect(Collectors.toList());
+    }
+
     private Map<Long, GenreDto> getGenreMap() {
         return genreService.getGenres().stream()
                 .collect(Collectors.toMap(GenreDto::getId, Function.identity()));
@@ -277,27 +304,4 @@ public class FilmService {
         }
     }
 
-    public List<FilmDto> getRecommendations(long userId) {
-        log.info("Получение рекомендаций для пользователя {}", userId);
-
-        userService.checkUserExists(userId);
-
-        Set<Long> userLiked = filmStorage.findLikedFilmIdsByUser(userId);
-
-        if (userLiked.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        Optional<Long> bestUserId = filmStorage.findMostSimilarUserId(userId);
-        if (bestUserId.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        Set<Long> similarLiked = filmStorage.findLikedFilmIdsByUser(bestUserId.get());
-        similarLiked.removeAll(userLiked);
-
-        return similarLiked.stream()
-                .map(this::getFilmById)
-                .collect(Collectors.toList());
-    }
 }

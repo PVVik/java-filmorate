@@ -279,6 +279,8 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         List<Long> result = jdbc.queryForList(sql, Long.class, userId, userId);
 
         return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
+    }
+
     public List<Film> search(String query, List<String> by) {
         StringBuilder sql = new StringBuilder("""
                 SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration,
