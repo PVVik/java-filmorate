@@ -301,7 +301,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         String searchTerm = "%" + cleanQuery + "%";
 
         if (by.size() == 2) {
-            sql.append(" WHERE LOWER(d.director_name) LIKE ? OR LOWER(f.film_name) LIKE ?");
+            sql.append(" WHERE LOWER(d.director_name) LIKE ? OR LOWER(f.film_name) LIKE ? OR LOWER(f.description) LIKE ?");
             params.add(searchTerm);
             params.add(searchTerm);
         } else {
@@ -309,7 +309,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
                 sql.append(" WHERE LOWER(d.director_name) LIKE ?");
                 params.add(searchTerm);
             } else if (by.contains("title")) {
-                sql.append(" WHERE LOWER(f.film_name) LIKE ?");
+                sql.append(" WHERE LOWER(f.film_name) LIKE ? OR LOWER(f.description) LIKE ?");
                 params.add(searchTerm);
             }
         }
