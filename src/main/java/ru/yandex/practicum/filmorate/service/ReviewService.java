@@ -28,6 +28,7 @@ public class ReviewService {
         userService.checkUserExists(reviewDto.getUserId());
         filmService.checkFilmExists(reviewDto.getFilmId());
 
+        reviewDto.setUseful(0L);
         var review = reviewStorage.create(ReviewMapper.mapToEntity(reviewDto));
         eventService.addReviewEvent(review.getUserId(), review.getReviewId(), Operation.ADD);
 
@@ -37,17 +38,12 @@ public class ReviewService {
 
     @Transactional
     public ReviewDto update(ReviewDto reviewDto) {
-        if (reviewDto.getFilmId() != null) {
-            filmService.checkFilmExists(reviewDto.getFilmId());
-        }
-        if (reviewDto.getUserId() != null) {
-            userService.checkUserExists(reviewDto.getUserId());
-        }
-
         var oldReview = reviewStorage.getById(reviewDto.getReviewId());
-        var updateReview = ReviewMapper.mapToUpdateEntity(oldReview, reviewDto);
 
-        var savedReview = reviewStorage.update(updateReview);
+        oldReview.setContent(reviewDto.getContent());
+        oldReview.setPositive(reviewDto.getIsPositive());
+
+        var savedReview = reviewStorage.update(oldReview);
         eventService.addReviewEvent(savedReview.getUserId(), savedReview.getReviewId(), Operation.UPDATE);
 
         log.info("Обновили отзыв с id {}", savedReview.getReviewId());
@@ -64,16 +60,13 @@ public class ReviewService {
     public List<ReviewDto> search(Long filmId, long limit) {
         if (filmId != null) {
             filmService.checkFilmExists(filmId);
-
-            log.info("Получили список отзывов к фильму с id {} в количестве {}", filmId, limit);
+            log.info("Получили отзывы к фильму {} в количестве {}", filmId, limit);
 
             return reviewStorage.getAllByFilmIdAndLimit(filmId, limit).stream()
-                    .sorted(Review::compareTo)
                     .map(ReviewMapper::mapToDto)
                     .toList();
         }
         return reviewStorage.getAllByLimit(limit).stream()
-                .sorted(Review::compareTo)
                 .map(ReviewMapper::mapToDto)
                 .toList();
     }
