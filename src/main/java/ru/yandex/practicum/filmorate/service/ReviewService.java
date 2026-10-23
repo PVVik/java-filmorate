@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.ReviewDto;
 import ru.yandex.practicum.filmorate.mapper.ReviewMapper;
 import ru.yandex.practicum.filmorate.model.Operation;
-import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.VoteType;
 import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
 
@@ -73,6 +72,7 @@ public class ReviewService {
 
     @Transactional
     public void delete(long id) {
+        checkReviewExists(id);
         var review = reviewStorage.getById(id);
 
         reviewStorage.delete(review.getReviewId());
@@ -83,6 +83,7 @@ public class ReviewService {
     }
 
     public void likeReview(long reviewId, long userId) {
+        checkReviewExists(reviewId);
         var review = reviewStorage.getById(reviewId);
         userService.checkUserExists(userId);
 
@@ -104,6 +105,7 @@ public class ReviewService {
     }
 
     public void dislikeReview(long reviewId, long userId) {
+        checkReviewExists(reviewId);
         var review = reviewStorage.getById(reviewId);
         userService.checkUserExists(userId);
 
@@ -125,6 +127,7 @@ public class ReviewService {
     }
 
     public void deleteLikeReview(long reviewId, long userId) {
+        checkReviewExists(reviewId);
         var review = reviewStorage.getById(reviewId);
         userService.checkUserExists(userId);
 
@@ -138,6 +141,7 @@ public class ReviewService {
     }
 
     public void deleteDislikeReview(long reviewId, long userId) {
+        checkReviewExists(reviewId);
         var review = reviewStorage.getById(reviewId);
         userService.checkUserExists(userId);
 
@@ -150,30 +154,9 @@ public class ReviewService {
         log.info("Удалили дизлайк отзыв с id {}, сейчас оценка отзыва {}", review.getReviewId(), review.getUseful());
     }
 
-    private void changeUsefulIfAddVote(Review review, VoteType voteType) {
-        long useful = review.getUseful();
-
-        if (voteType.equals(VoteType.LIKE)) {
-            useful = useful + 1;
-        }
-        if (voteType.equals((VoteType.DISLIKE))) {
-            useful = useful - 1;
-        }
-
-        review.setUseful(useful);
+    private void checkReviewExists(long id) {
+        reviewStorage.getById(id);
     }
 
-    private void changeUsefulIfDeleteVote(Review review, VoteType voteType) {
-        long useful = review.getUseful();
-
-        if (voteType.equals(VoteType.LIKE)) {
-            useful = useful - 1;
-        }
-        if (voteType.equals((VoteType.DISLIKE))) {
-            useful = useful + 1;
-        }
-
-        review.setUseful(useful);
-    }
 
 }
