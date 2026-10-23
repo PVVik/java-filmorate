@@ -197,11 +197,8 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     @Override
     public void addLike(long filmId, long userId) {
-        String query = "INSERT INTO likes (film_id, user_id) " +
-                "VALUES (?, ?)";
-
-        log.debug("INSERT INTO likes (film_id, user_id) VALUES ({}, {})", filmId, userId);
-
+        String query = "MERGE INTO likes (film_id, user_id) KEY(film_id, user_id) VALUES (?, ?)";
+        log.debug("MERGE INTO likes (film_id, user_id) VALUES ({}, {})", filmId, userId);
         insert(query, filmId, userId);
     }
 
