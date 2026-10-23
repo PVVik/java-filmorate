@@ -1,8 +1,13 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -17,13 +22,20 @@ public class Film implements Comparable<Film> {
     private String description;
     private LocalDate releaseDate;
     private Long duration;
+
     private Set<Long> likes;
+
     private Long mpaId;
-    private Set<Long> genres;
-    private Set<Long> directors;
+
+    private List<Genre> genres;
+
+    private List<Director> directors;
 
     @Override
     public int compareTo(Film o) {
-        return o.getLikes().size() - this.getLikes().size();
+        int thisLikesCount = (this.likes != null) ? this.likes.size() : 0;
+        int otherLikesCount = (o.likes != null) ? o.likes.size() : 0;
+
+        return Integer.compare(otherLikesCount, thisLikesCount);
     }
 }

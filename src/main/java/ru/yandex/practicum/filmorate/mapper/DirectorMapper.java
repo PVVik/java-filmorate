@@ -21,4 +21,11 @@ public class DirectorMapper {
 
         return director;
     }
+
+    public static Director mapToModel(DirectorDto directorDto) {
+        return Director.builder()
+                .id(directorDto.getId())
+                .name(directorDto.getName())
+                .build();
+    }
 }

@@ -30,7 +30,6 @@ public class BaseRepository<T> {
         }
     }
 
-
     protected long insert(String query, Object... params) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(connection -> {

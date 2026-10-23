@@ -16,6 +16,8 @@ public interface DirectorStorage {
 
     Director getById(long id);
 
+    List<Director> getDirectorsByFilmId(long filmId);
+
     void delete(long id);
 
     Set<Long> addFilmDirectors(long filmId, Set<Long> directors);

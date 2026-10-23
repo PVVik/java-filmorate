@@ -122,5 +122,4 @@ class FilmServiceTest {
         assertThat(commonFilms.get(1).getName()).isEqualTo("Old Film");
     }
 
-
 }

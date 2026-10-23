@@ -74,7 +74,7 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
     }
 
     @Override
-    public List<Review> getAllByFilmIdAndLimit(long filmId, long limit) {
+    public List<Review> getAllByFilmIdAndLimit(long filmId, int limit) {
         String query = "SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id, r.useful " +
                 "FROM reviews AS r WHERE r.film_id = ? ORDER BY r.useful DESC, r.review_id ASC LIMIT ?";
 
@@ -85,7 +85,7 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
     }
 
     @Override
-    public List<Review> getAllByLimit(long limit) {
+    public List<Review> getAllByLimit(int limit) {
         String query = "SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id, r.useful " +
                 "FROM reviews AS r ORDER BY r.useful DESC, r.review_id ASC LIMIT ?";
 

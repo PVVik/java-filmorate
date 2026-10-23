@@ -142,4 +142,3 @@ class DirectorTests {
         return jdbc.queryForObject("SELECT MAX(film_id) FROM films", Long.class);
     }
 }
-

@@ -84,7 +84,8 @@ public class InMemoryFilmStorage implements FilmStorage {
     public List<Film> getPopularFilms(long count, Long genreId, Integer year) {
         log.info("Получили список популярных фильмов");
         return this.getFilms().stream()
-                .filter(f -> genreId == null || f.getGenres().contains(genreId))
+                .filter(f -> genreId == null
+                        || (f.getGenres() != null && f.getGenres().stream().anyMatch(g -> g.getId() == genreId)))
                 .filter(f -> year == null || f.getReleaseDate().getYear() == year)
                 .sorted(Film::compareTo)
                 .limit(count)
@@ -107,7 +108,6 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .sorted(Comparator.comparingLong((Film f) -> f.getLikes().size()).reversed())
                 .collect(Collectors.toList());
     }
-
 
     @Override
     public void addLike(long filmId, long userId) {

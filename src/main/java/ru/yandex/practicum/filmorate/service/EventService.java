@@ -17,7 +17,7 @@ import java.util.List;
 @Slf4j
 public class EventService {
 
-    public static final int DEFAULT_FEED_LIMIT = 20;
+    public static final int DEFAULT_FEED_LIMIT = 13;
 
     private final EventStorage eventStorage;
     private final UserStorage userStorage;

@@ -9,9 +9,9 @@ import ru.yandex.practicum.filmorate.mapper.DirectorMapper;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -55,6 +55,14 @@ public class DirectorService {
         return DirectorMapper.mapToDto(director);
     }
 
+    public List<DirectorDto> getDirectorsByFilmId(long filmId) {
+        log.info("Вернули режиссеров фильма с id {}", filmId);
+
+        return directorStorage.getDirectorsByFilmId(filmId).stream()
+                .map(DirectorMapper::mapToDto)
+                .toList();
+    }
+
     public void delete(long id) {
         var director = directorStorage.getById(id);
 
@@ -63,7 +71,7 @@ public class DirectorService {
         directorStorage.delete(director.getId());
     }
 
-    public void checkDirectorExists(Set<DirectorDto> directors) {
+    public void checkDirectorExists(List<DirectorDto> directors) {
         if (directors == null || directors.isEmpty()) {
             return;
         }
@@ -84,14 +92,16 @@ public class DirectorService {
         }
     }
 
-    public Set<Long> addFilmDirectors(long filmId, Set<DirectorDto> directors) {
+    public List<Director> addFilmDirectors(long filmId, List<DirectorDto> directors) {
         var directorIds = directors.stream()
                 .map(DirectorDto::getId)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(HashSet::new));
 
         log.info("Добавили режиссеров к фильму с id {}", filmId);
 
-        return directorStorage.addFilmDirectors(filmId, directorIds);
+        return directorStorage.addFilmDirectors(filmId, directorIds).stream()
+                .map(id -> DirectorMapper.mapToModel(new DirectorDto(id)))
+                .toList();
     }
 
     public void removeFilmDirectors(long filmId) {

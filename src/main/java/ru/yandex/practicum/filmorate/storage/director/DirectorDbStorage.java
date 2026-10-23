@@ -64,6 +64,22 @@ public class DirectorDbStorage extends BaseRepository<Director> implements Direc
     }
 
     @Override
+    public List<Director> getDirectorsByFilmId(long filmId) {
+        String query = """
+                SELECT d.director_id, d.director_name
+                FROM directors AS d
+                JOIN film_directors AS fd ON fd.director_id = d.director_id
+                WHERE fd.film_id = ?
+                ORDER BY d.director_id ASC
+                """;
+
+        log.debug("SELECT d.director_id, d.director_name FROM directors AS d " +
+                "JOIN film_directors AS fd ON fd.director_id = d.director_id WHERE fd.film_id = {}", filmId);
+
+        return findMany(query, filmId);
+    }
+
+    @Override
     public void delete(long id) {
         String query = "DELETE FROM directors WHERE director_id = ?";
 

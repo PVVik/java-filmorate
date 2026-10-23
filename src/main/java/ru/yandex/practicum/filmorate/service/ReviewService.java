@@ -57,16 +57,16 @@ public class ReviewService {
         return ReviewMapper.mapToDto(review);
     }
 
-    public List<ReviewDto> search(Long filmId, long limit) {
+    public List<ReviewDto> getReviewsByFilmId(Long filmId, int count) {
         if (filmId != null) {
             filmService.checkFilmExists(filmId);
-            log.info("Получили отзывы к фильму {} в количестве {}", filmId, limit);
+            log.info("Получили отзывы к фильму {} в количестве {}", filmId, count);
 
-            return reviewStorage.getAllByFilmIdAndLimit(filmId, limit).stream()
+            return reviewStorage.getAllByFilmIdAndLimit(filmId, count).stream()
                     .map(ReviewMapper::mapToDto)
                     .toList();
         }
-        return reviewStorage.getAllByLimit(limit).stream()
+        return reviewStorage.getAllByLimit(count).stream()
                 .map(ReviewMapper::mapToDto)
                 .toList();
     }
@@ -81,7 +81,6 @@ public class ReviewService {
 
         log.info("Удалили отзыв с id {} и создали событие REMOVE", review.getReviewId());
     }
-
 
     public void likeReview(long reviewId, long userId) {
         var review = reviewStorage.getById(reviewId);

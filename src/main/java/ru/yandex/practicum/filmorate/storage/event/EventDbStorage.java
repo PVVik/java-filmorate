@@ -49,22 +49,12 @@ public class EventDbStorage extends BaseRepository<Event> implements EventStorag
                     SELECT e.event_id, e.user_id, e.entity_id, e.event_type, e.operation, e.event_timestamp
                     FROM events e
                     WHERE e.user_id = ?
-                       OR e.user_id IN (
-                           SELECT f.friend_id
-                           FROM friendship f
-                           WHERE f.user_id = ?
-                           UNION ALL
-                           SELECT f.user_id
-                           FROM friendship f
-                           WHERE f.friend_id = ?
-                       )
                     ORDER BY e.event_timestamp ASC, e.event_id ASC
                     LIMIT ?
                 """;
 
         log.info("Получаем ленту пользователя {} с лимитом {}", userId, limit);
-        return findMany(query, userId, userId, userId, limit);
+        return findMany(query, userId, limit);
     }
-
 
 }

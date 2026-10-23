@@ -16,9 +16,9 @@ public interface ReviewStorage {
 
     Review getById(long reviewId);
 
-    List<Review> getAllByFilmIdAndLimit(long filmId, long limit);
+    List<Review> getAllByFilmIdAndLimit(long filmId, int limit);
 
-    List<Review> getAllByLimit(long limit);
+    List<Review> getAllByLimit(int limit);
 
     void addVote(long reviewId, long userId, VoteType voteType);
 

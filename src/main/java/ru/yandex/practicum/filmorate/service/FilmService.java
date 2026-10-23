@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.dto.GenreDto;
 import ru.yandex.practicum.filmorate.dto.MpaDto;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
+import ru.yandex.practicum.filmorate.mapper.GenreMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
@@ -29,7 +30,6 @@ public class FilmService {
     private final GenreService genreService;
     private final DirectorService directorService;
     private final EventService eventService;
-
 
     public FilmService(
             @Qualifier("FilmDbStorage") FilmStorage filmStorage,
@@ -69,14 +69,19 @@ public class FilmService {
 
     public List<FilmDto> getPopularFilms(long count, Long genreId, Integer year) {
         var films = filmStorage.getPopularFilms(count, genreId, year);
-        var genreMap = getGenreMap();
-        var mpaMap = getMpaMap();
-        var directorMap = getDirectorMap();
 
-        log.info("Обработали запрос на получение списка популярных фильмов");
+        log.info("Обработали запрос на получение списка популярных фильмов, найдено фильмов: {}", films.size());
 
         return films.stream()
-                .map(film -> getFilmDtoWithGenresAndMpaAndDirectors(film, genreMap, mpaMap, directorMap))
+                .map(film -> {
+                    var dto = FilmMapper.mapToDto(film);
+                    dto.setGenres(genreService.getGenresByFilmId(film.getId()));
+                    if (film.getMpaId() != null) {
+                        dto.setMpa(mpaService.getMpaById(film.getMpaId()));
+                    }
+                    dto.setDirectors(directorService.getDirectorsByFilmId(film.getId()));
+                    return dto;
+                })
                 .toList();
     }
 
@@ -101,42 +106,62 @@ public class FilmService {
                 .toList();
     }
 
+    @Transactional
     public FilmDto addFilm(FilmDto filmDto) {
         checkValidDate(filmDto);
         mpaService.checkMpaExists(filmDto.getMpa().getId());
 
-        if (filmDto.getGenres() != null) {
-            genreService.checkGenresExists(filmDto.getGenres());
+        if (filmDto.getGenres() != null && !filmDto.getGenres().isEmpty()) {
+            var uniqueGenres = filmDto.getGenres().stream()
+                    .distinct()
+                    .collect(Collectors.toList());
+            genreService.checkGenresExists(uniqueGenres);
         }
 
-        if (filmDto.getDirectors() != null) {
-            directorService.checkDirectorExists(filmDto.getDirectors());
+        if (filmDto.getDirectors() != null && !filmDto.getDirectors().isEmpty()) {
+            var uniqueDirectors = filmDto.getDirectors().stream()
+                    .distinct()
+                    .collect(Collectors.toList());
+            directorService.checkDirectorExists(uniqueDirectors);
         }
 
         var film = filmStorage.addFilm(FilmMapper.mapToFilm(filmDto));
 
         if (filmDto.getGenres() != null && !filmDto.getGenres().isEmpty()) {
-            var sortedGenres = filmDto.getGenres().stream()
-                    .sorted(Comparator.comparing(GenreDto::getId))
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
-            var filmGenres = genreService.addFilmGenres(film.getId(), sortedGenres);
-            film.setGenres(filmGenres);
+            var uniqueGenres = filmDto.getGenres().stream()
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            var genreIds = uniqueGenres.stream()
+                    .map(GenreDto::getId)
+                    .toList();
+
+            genreService.addFilmGenres(film.getId(), genreIds);
+
+            var genresObjects = uniqueGenres.stream()
+                    .map(GenreMapper::mapToModel)
+                    .collect(Collectors.toList());
+            film.setGenres(genresObjects);
         } else {
-            film.setGenres(new LinkedHashSet<>());
+            film.setGenres(List.of());
         }
 
         if (filmDto.getDirectors() != null && !filmDto.getDirectors().isEmpty()) {
-            var filmDirectors = directorService.addFilmDirectors(film.getId(), filmDto.getDirectors());
-            film.setDirectors(filmDirectors);
+            var uniqueDirectors = filmDto.getDirectors().stream()
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            var directorsObjects = directorService.addFilmDirectors(film.getId(), uniqueDirectors);
+            film.setDirectors(directorsObjects);
         } else {
-            film.setDirectors(new HashSet<>());
+            film.setDirectors(List.of());
         }
 
         log.info("Добавили фильм с id {}", film.getId());
-
         return FilmMapper.mapToDto(film);
     }
 
+    @Transactional
     public FilmDto updateFilm(FilmDto filmDto) {
         var film = filmStorage.getFilmById(filmDto.getId());
         var updateFilm = FilmMapper.mapToUpdateFilm(film, filmDto);
@@ -146,34 +171,48 @@ public class FilmService {
             updateFilm.setMpaId(filmDto.getMpa().getId());
         }
 
-        if (filmDto.getDirectors() != null) {
-            directorService.checkDirectorExists(filmDto.getDirectors());
+        if (filmDto.getDirectors() == null || filmDto.getDirectors().isEmpty()) {
+            directorService.removeFilmDirectors(updateFilm.getId());
+            updateFilm.setDirectors(List.of());
+        } else {
+            var uniqueDirectors = filmDto.getDirectors().stream()
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            directorService.checkDirectorExists(uniqueDirectors);
             directorService.removeFilmDirectors(updateFilm.getId());
 
-            if (!filmDto.getDirectors().isEmpty()) {
-                var newDirectors = directorService.addFilmDirectors(updateFilm.getId(), filmDto.getDirectors());
-                updateFilm.setDirectors(newDirectors);
-            } else {
-                updateFilm.setDirectors(new HashSet<>());
-            }
+            var directorsObjects = directorService.addFilmDirectors(updateFilm.getId(), uniqueDirectors);
+            updateFilm.setDirectors(directorsObjects);
         }
 
-        if (filmDto.getGenres() != null) {
-            genreService.checkGenresExists(filmDto.getGenres());
-            genreService.removeFilmGenres(filmDto.getId());
+        if (filmDto.getGenres() == null || filmDto.getGenres().isEmpty()) {
+            genreService.removeFilmGenres(updateFilm.getId());
+            updateFilm.setGenres(List.of());
+        } else {
+            var uniqueGenres = filmDto.getGenres().stream()
+                    .distinct()
+                    .collect(Collectors.toList());
 
-            if (!filmDto.getGenres().isEmpty()) {
-                var newGenres = genreService.addFilmGenres(updateFilm.getId(), filmDto.getGenres());
-                updateFilm.setGenres(newGenres);
-            } else {
-                updateFilm.setGenres(new HashSet<>());
-            }
+            genreService.checkGenresExists(uniqueGenres);
+            genreService.removeFilmGenres(updateFilm.getId());
+
+            var genreIds = uniqueGenres.stream()
+                    .map(GenreDto::getId)
+                    .toList();
+
+            genreService.addFilmGenres(updateFilm.getId(), genreIds);
+
+            var genresObjects = uniqueGenres.stream()
+                    .map(GenreMapper::mapToModel)
+                    .collect(Collectors.toList());
+            updateFilm.setGenres(genresObjects);
         }
 
         log.info("Обновили фильм с id {}", updateFilm.getId());
 
         return getFilmDtoWithGenresAndMpaAndDirectors(
-                filmStorage.updateFilm(film),
+                filmStorage.updateFilm(updateFilm),
                 getGenreMap(),
                 getMpaMap(),
                 getDirectorMap()
@@ -301,7 +340,6 @@ public class FilmService {
                 .collect(Collectors.toMap(DirectorDto::getId, Function.identity()));
     }
 
-
     private void checkValidDate(FilmDto filmDto) {
         if (filmDto.getReleaseDate().isBefore(FilmStorage.MIN_DATE_FOR_FILM)) {
             log.warn("Получили исключение при вводе неверной даты релиза {}", filmDto.getReleaseDate());
@@ -309,19 +347,22 @@ public class FilmService {
         }
     }
 
-    private FilmDto getFilmDtoWithGenresAndMpaAndDirectors(Film film, Map<Long, GenreDto> genreMap,
-                                                           Map<Long, MpaDto> mpaMap, Map<Long, DirectorDto> directorMap) {
+    private FilmDto getFilmDtoWithGenresAndMpaAndDirectors(
+            Film film,
+            Map<Long, GenreDto> genreMap,
+            Map<Long, MpaDto> mpaMap,
+            Map<Long, DirectorDto> directorMap
+    ) {
         var dto = FilmMapper.mapToDto(film);
 
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
             var filmGenres = film.getGenres().stream()
-                    .sorted()
-                    .map(genreMap::get)
+                    .map(genre -> genreMap.get(genre.getId()))
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
+                    .toList();
             dto.setGenres(filmGenres);
         } else {
-            dto.setGenres(new LinkedHashSet<>());
+            dto.setGenres(List.of());
         }
 
         if (film.getMpaId() != null) {
@@ -330,12 +371,13 @@ public class FilmService {
 
         if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
             var filmDirectors = film.getDirectors().stream()
-                    .sorted()
-                    .map(directorMap::get)
+                    .map(director -> directorMap.get(director.getId()))
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
+                    .toList();
             dto.setDirectors(filmDirectors);
-        } else dto.setDirectors(new LinkedHashSet<>());
+        } else {
+            dto.setDirectors(List.of());
+        }
 
         return dto;
     }

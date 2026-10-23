@@ -34,13 +34,11 @@ class EventDbStorageTest {
     void create_shouldPersistEvent() {
         long userId = createTestUser("feed-create@test.com", "feedcreate");
 
-        // Время можно вообще не передавать — в Event оно будет null, БД сама поставит
         Event saved = eventStorage.create(Event.builder()
                 .userId(userId)
                 .entityId(10L)
                 .eventType(EventType.LIKE)
                 .operation(Operation.ADD)
-                // .timestamp(...) <-- УДАЛИТЬ
                 .build());
 
         assertThat(saved.getEventId()).isPositive();
@@ -49,7 +47,6 @@ class EventDbStorageTest {
                 "SELECT COUNT(*) FROM events WHERE event_id = ?", Long.class, saved.getEventId());
         assertThat(count).isEqualTo(1L);
 
-        // Дополнительно можно проверить, что timestamp не null
         Event fromDb = jdbc.queryForObject(
                 "SELECT event_id, user_id, entity_id, event_type, operation, event_timestamp " +
                         "FROM events WHERE event_id = ?",
@@ -63,7 +60,6 @@ class EventDbStorageTest {
         long user1 = createTestUser("feed-user1@test.com", "feeduser1");
         long user2 = createTestUser("feed-user2@test.com", "feeduser2");
 
-        // Создаём события подряд — БД сама проставит время с разницей в миллисекунды
         eventStorage.create(Event.builder().userId(user1).entityId(1L).eventType(EventType.LIKE).operation(Operation.ADD).build());
         eventStorage.create(Event.builder().userId(user2).entityId(2L).eventType(EventType.FRIEND).operation(Operation.ADD).build());
         eventStorage.create(Event.builder().userId(user1).entityId(1L).eventType(EventType.LIKE).operation(Operation.REMOVE).build());
@@ -73,7 +69,6 @@ class EventDbStorageTest {
         assertThat(feed).hasSize(2);
         assertThat(feed).allMatch(e -> e.getUserId() == user1);
 
-        // Проверяем сортировку: первое событие должно быть «новее» второго
         Instant first = feed.get(0).getTimestamp();
         Instant second = feed.get(1).getTimestamp();
         assertThat(first).isAfterOrEqualTo(second);
@@ -96,7 +91,6 @@ class EventDbStorageTest {
         List<Event> feed = eventStorage.getUserFeed(userId, 3);
 
         assertThat(feed).hasSize(3);
-        // Не проверяем точное время, проверяем, что все не null и отсортированы
         assertThat(feed.stream().map(Event::getTimestamp).allMatch(t -> t != null));
         for (int i = 0; i < feed.size() - 1; i++) {
             assertThat(feed.get(i).getTimestamp())
@@ -104,7 +98,6 @@ class EventDbStorageTest {
         }
     }
 
-    // Вспомогательный билдер без timestamp
     private Event event(long userId, EventType type, Operation operation, long entityId) {
         return Event.builder()
                 .userId(userId)

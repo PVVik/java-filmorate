@@ -8,4 +8,11 @@ public class GenreMapper {
     public static GenreDto mapToDto(Genre genre) {
         return new GenreDto(genre.getId(), genre.getName());
     }
+
+    public static Genre mapToModel(GenreDto genreDto) {
+        return Genre.builder()
+                .id(genreDto.getId())
+                .name(genreDto.getName())
+                .build();
+    }
 }

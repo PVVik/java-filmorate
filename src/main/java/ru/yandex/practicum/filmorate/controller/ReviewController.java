@@ -31,10 +31,9 @@ public class ReviewController {
     }
 
     @GetMapping
-    public List<ReviewDto> search(@RequestParam(required = false) String filmId,
-                                  @RequestParam(defaultValue = "10") String limit) {
-        Long fId = (filmId != null) ? Long.parseLong(filmId) : null;
-        return reviewService.search(fId, Long.parseLong(limit));
+    public List<ReviewDto> search(@RequestParam(required = false) Long filmId,
+                                  @RequestParam(defaultValue = "10") int count) {
+        return reviewService.getReviewsByFilmId(filmId, count);
     }
 
     @DeleteMapping("/{id}")
