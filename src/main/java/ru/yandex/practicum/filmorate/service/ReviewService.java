@@ -94,34 +94,42 @@ public class ReviewService {
         var review = reviewStorage.getById(reviewId);
         userService.checkUserExists(userId);
 
-        if (reviewStorage.findVoteType(reviewId, userId).isPresent()) {
+        var existingVote = reviewStorage.findVoteType(reviewId, userId);
+
+        if (existingVote.isPresent()) {
+            if (existingVote.get().equals("LIKE")) {
+                return;
+            }
             reviewStorage.updateVote(reviewId, userId, VoteType.LIKE);
-            changeUsefulIfAddVote(review, VoteType.LIKE);
+            review.setUseful(review.getUseful() + 2);
         } else {
             reviewStorage.addVote(reviewId, userId, VoteType.LIKE);
+            review.setUseful(review.getUseful() + 1);
         }
 
-        changeUsefulIfAddVote(review, VoteType.LIKE);
         reviewStorage.update(review);
-
-        log.info("Лайкнули отзыв с id {}, сейчас оценка отзыва {}", review.getReviewId(), review.getUseful());
+        log.info("Лайкнули отзыв с id {}, сейчас оценка {}", review.getReviewId(), review.getUseful());
     }
 
     public void dislikeReview(long reviewId, long userId) {
         var review = reviewStorage.getById(reviewId);
         userService.checkUserExists(userId);
 
-        if (reviewStorage.findVoteType(reviewId, userId).isPresent()) {
-            reviewStorage.updateVote(reviewId, userId, VoteType.DISLIKE);
-            changeUsefulIfAddVote(review, VoteType.DISLIKE);
+        var existingVote = reviewStorage.findVoteType(reviewId, userId);
+
+        if (existingVote.isPresent()) {
+            if (existingVote.get().equals("DISLIKE")) {
+                return;
+            }
+            reviewStorage.updateVote(reviewId, userId, VoteType.LIKE);
+            review.setUseful(review.getUseful() + 2);
         } else {
-            reviewStorage.addVote(reviewId, userId, VoteType.DISLIKE);
+            reviewStorage.addVote(reviewId, userId, VoteType.LIKE);
+            review.setUseful(review.getUseful() + 1);
         }
 
-        changeUsefulIfAddVote(review, VoteType.DISLIKE);
         reviewStorage.update(review);
-
-        log.info("Дизлайкнули отзыв с id {}, сейчас оценка отзыва {}", review.getReviewId(), review.getUseful());
+        log.info("Дизлайкнули отзыв с id {}, сейчас оценка {}", review.getReviewId(), review.getUseful());
     }
 
     public void deleteLikeReview(long reviewId, long userId) {

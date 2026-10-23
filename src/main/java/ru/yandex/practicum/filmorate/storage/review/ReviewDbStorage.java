@@ -79,7 +79,7 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
     @Override
     public List<Review> getAllByFilmIdAndLimit(long filmId, long limit) {
         String query = "SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id, r.useful " +
-                "FROM reviews AS r WHERE r.film_id = ? LIMIT ?";
+                "FROM reviews AS r WHERE r.film_id = ? ORDER BY r.useful DESC, r.review_id ASC LIMIT ?";
 
         log.debug("SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id, r.useful " +
                 "FROM reviews AS r WHERE r.film_id = {} LIMIT {}", filmId, limit);
@@ -90,7 +90,7 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
     @Override
     public List<Review> getAllByLimit(long limit) {
         String query = "SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id, r.useful " +
-                "FROM reviews AS r LIMIT ?";
+                "FROM reviews AS r ORDER BY r.useful DESC, r.review_id ASC LIMIT ?";
 
         log.debug("SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id, r.useful " +
                 "FROM reviews AS r LIMIT {}", limit);
@@ -100,10 +100,8 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
 
     @Override
     public void addVote(long reviewId, long userId, VoteType voteType) {
-        String query = "INSERT INTO review_votes (review_id, user_id, vote_type) " +
-                "VALUES (?, ?, ?)";
-
-        log.debug("INSERT INTO review_votes (review_id, user_id, vote_type) " +
+        String query = "MERGE INTO review_votes (review_id, user_id, vote_type) KEY(review_id, user_id) VALUES (?, ?, ?)";
+        log.debug("MERGE INTO review_votes (review_id, user_id, vote_type) " +
                 "VALUES ({}, {}, {})", reviewId, userId, voteType.toString());
 
         insert(query, reviewId, userId, voteType.toString());
