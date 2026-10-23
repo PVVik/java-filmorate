@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS film_directors (
     film_id BIGINT,
     director_id BIGINT,
     CONSTRAINT fk_film_directors FOREIGN KEY (film_id) REFERENCES films(film_id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_directors_film FOREIGN KEY (director_id) REFERENCES directors(director_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_directors_film FOREIGN KEY (director_id) REFERENCES directors(director_id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT uq_film_directors UNIQUE (film_id, director_id)
 );
 

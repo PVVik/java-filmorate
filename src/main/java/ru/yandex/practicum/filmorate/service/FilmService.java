@@ -116,10 +116,13 @@ public class FilmService {
         var film = filmStorage.addFilm(FilmMapper.mapToFilm(filmDto));
 
         if (filmDto.getGenres() != null && !filmDto.getGenres().isEmpty()) {
-            var filmGenres = genreService.addFilmGenres(film.getId(), filmDto.getGenres());
+            var sortedGenres = filmDto.getGenres().stream()
+                    .sorted(Comparator.comparing(GenreDto::getId))
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            var filmGenres = genreService.addFilmGenres(film.getId(), sortedGenres);
             film.setGenres(filmGenres);
         } else {
-            film.setGenres(new HashSet<>());
+            film.setGenres(new LinkedHashSet<>());
         }
 
         if (filmDto.getDirectors() != null && !filmDto.getDirectors().isEmpty()) {
@@ -169,7 +172,12 @@ public class FilmService {
 
         log.info("Обновили фильм с id {}", updateFilm.getId());
 
-        return FilmMapper.mapToDto(filmStorage.updateFilm(film));
+        return getFilmDtoWithGenresAndMpaAndDirectors(
+                filmStorage.updateFilm(film),
+                getGenreMap(),
+                getMpaMap(),
+                getDirectorMap()
+        );
     }
 
     public List<FilmDto> getFilms() {
@@ -197,6 +205,9 @@ public class FilmService {
 
     public List<FilmDto> getFilmsByDirectorId(long directorId, String sortBy) {
         var director = directorService.getById(directorId);
+        var genreMap = getGenreMap();
+        var mpaMap = getMpaMap();
+        var directorMap = getDirectorMap();
 
         String[] stringsSortBy;
         if (StringUtils.hasText(sortBy)) {
@@ -207,22 +218,22 @@ public class FilmService {
                 return filmStorage.getByDirectorId(director.getId()).stream()
                         .sorted(Comparator.comparing(f -> f.getReleaseDate().getYear()))
                         .sorted(Comparator.comparing(f -> f.getLikes().size()))
-                        .map(FilmMapper::mapToDto)
+                        .map(film -> getFilmDtoWithGenresAndMpaAndDirectors(film, genreMap, mpaMap, directorMap))
                         .toList();
             } else if (stringsSortBy.length == 1 && stringsSortBy[0].equals("year")) {
                 return filmStorage.getByDirectorId(director.getId()).stream()
                         .sorted(Comparator.comparing(f -> f.getReleaseDate().getYear()))
-                        .map(FilmMapper::mapToDto)
+                        .map(film -> getFilmDtoWithGenresAndMpaAndDirectors(film, genreMap, mpaMap, directorMap))
                         .toList();
             } else if (stringsSortBy.length == 1 && stringsSortBy[0].equals("likes")) {
                 return filmStorage.getByDirectorId(director.getId()).stream()
                         .sorted(Comparator.comparing(f -> f.getLikes().size()))
-                        .map(FilmMapper::mapToDto)
+                        .map(film -> getFilmDtoWithGenresAndMpaAndDirectors(film, genreMap, mpaMap, directorMap))
                         .toList();
             }
         }
         return filmStorage.getByDirectorId(director.getId()).stream()
-                .map(FilmMapper::mapToDto)
+                .map(film -> getFilmDtoWithGenresAndMpaAndDirectors(film, genreMap, mpaMap, directorMap))
                 .toList();
     }
 
