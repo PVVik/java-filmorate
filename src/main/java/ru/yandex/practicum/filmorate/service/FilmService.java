@@ -216,18 +216,21 @@ public class FilmService {
 
             if (stringsSortBy.length == 2) {
                 return filmStorage.getByDirectorId(director.getId()).stream()
-                        .sorted(Comparator.comparing(f -> f.getReleaseDate().getYear()))
-                        .sorted(Comparator.comparing(f -> f.getLikes().size()))
+                        .sorted(Comparator.comparing((Film f) -> f.getReleaseDate().getYear())
+                                .thenComparing(Comparator.comparing((Film f) -> f.getLikes().size()).reversed())
+                                .thenComparing(Film::getId))
                         .map(film -> getFilmDtoWithGenresAndMpaAndDirectors(film, genreMap, mpaMap, directorMap))
                         .toList();
             } else if (stringsSortBy.length == 1 && stringsSortBy[0].equals("year")) {
                 return filmStorage.getByDirectorId(director.getId()).stream()
-                        .sorted(Comparator.comparing(f -> f.getReleaseDate().getYear()))
+                        .sorted(Comparator.comparing((Film f) -> f.getReleaseDate().getYear())
+                                .thenComparing(Film::getId))
                         .map(film -> getFilmDtoWithGenresAndMpaAndDirectors(film, genreMap, mpaMap, directorMap))
                         .toList();
             } else if (stringsSortBy.length == 1 && stringsSortBy[0].equals("likes")) {
                 return filmStorage.getByDirectorId(director.getId()).stream()
-                        .sorted(Comparator.comparing(f -> f.getLikes().size()))
+                        .sorted(Comparator.comparing((Film f) -> f.getLikes().size()).reversed()
+                                .thenComparing(Film::getId))
                         .map(film -> getFilmDtoWithGenresAndMpaAndDirectors(film, genreMap, mpaMap, directorMap))
                         .toList();
             }
