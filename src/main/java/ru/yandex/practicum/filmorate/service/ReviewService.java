@@ -114,11 +114,11 @@ public class ReviewService {
             if (existingVote.get().equals("DISLIKE")) {
                 return;
             }
-            reviewStorage.updateVote(reviewId, userId, VoteType.LIKE);
-            review.setUseful(review.getUseful() + 2);
+            reviewStorage.updateVote(reviewId, userId, VoteType.DISLIKE);
+            review.setUseful(review.getUseful() - 2);
         } else {
-            reviewStorage.addVote(reviewId, userId, VoteType.LIKE);
-            review.setUseful(review.getUseful() + 1);
+            reviewStorage.addVote(reviewId, userId, VoteType.DISLIKE);
+            review.setUseful(review.getUseful() - 1);
         }
 
         reviewStorage.update(review);
@@ -129,9 +129,10 @@ public class ReviewService {
         var review = reviewStorage.getById(reviewId);
         userService.checkUserExists(userId);
 
-        reviewStorage.deleteVote(reviewId, userId, VoteType.LIKE);
+        if (reviewStorage.findVoteType(reviewId, userId).isEmpty()) return;
 
-        changeUsefulIfDeleteVote(review, VoteType.LIKE);
+        reviewStorage.deleteVote(reviewId, userId, VoteType.LIKE);
+        review.setUseful(review.getUseful() - 1);
         reviewStorage.update(review);
 
         log.info("Удалили лайк отзыв с id {}, сейчас оценка отзыва {}", review.getReviewId(), review.getUseful());
@@ -141,9 +142,10 @@ public class ReviewService {
         var review = reviewStorage.getById(reviewId);
         userService.checkUserExists(userId);
 
-        reviewStorage.deleteVote(reviewId, userId, VoteType.DISLIKE);
+        if (reviewStorage.findVoteType(reviewId, userId).isEmpty()) return;
 
-        changeUsefulIfDeleteVote(review, VoteType.DISLIKE);
+        reviewStorage.deleteVote(reviewId, userId, VoteType.DISLIKE);
+        review.setUseful(review.getUseful() + 1);
         reviewStorage.update(review);
 
         log.info("Удалили дизлайк отзыв с id {}, сейчас оценка отзыва {}", review.getReviewId(), review.getUseful());

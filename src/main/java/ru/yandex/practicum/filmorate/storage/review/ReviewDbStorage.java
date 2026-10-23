@@ -39,15 +39,12 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
 
     @Override
     public Review update(Review review) {
-        String query = "UPDATE reviews SET content = ?, is_positive = ?, user_id = ?, film_id = ?, useful = ? " +
-                "WHERE review_id = ?";
+        String query = "UPDATE reviews SET content = ?, is_positive = ?, useful = ? WHERE review_id = ?";
 
-        log.debug("UPDATE reviews SET content = {}, is_positive = {}, user_id = {}, film_id = {}, useful = {} " +
-                        "WHERE review_id = {}", review.getContent(), review.isPositive(), review.getUserId(), review.getFilmId(),
-                review.getUseful(), review.getReviewId());
+        log.debug("UPDATE reviews SET content = {}, is_positive = {}, useful = {} WHERE review_id = {}",
+                review.getContent(), review.isPositive(), review.getUseful(), review.getReviewId());
 
-        update(query, review.getContent(), review.isPositive(), review.getUserId(), review.getFilmId(),
-                review.getUseful(), review.getReviewId());
+        update(query, review.getContent(), review.isPositive(), review.getUseful(), review.getReviewId());
 
         return review;
     }
