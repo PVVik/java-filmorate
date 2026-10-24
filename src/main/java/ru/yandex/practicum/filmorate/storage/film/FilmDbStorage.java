@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -21,17 +22,12 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     private final ResultSetExtractor<List<Film>> filmWithGenresExtractorAndDirectors = rs -> {
         Map<Long, Film> filmMap = new LinkedHashMap<>();
-        List<Genre> genreList = new ArrayList<>();
-        List<Director> directorList = new ArrayList<>();
 
         while (rs.next()) {
             long filmId = rs.getLong("film_id");
             Film film = filmMap.get(filmId);
 
             if (film == null) {
-                genreList = new ArrayList<>();
-                directorList = new ArrayList<>();
-
                 film = Film.builder()
                         .id(filmId)
                         .name(rs.getString("film_name"))
@@ -39,8 +35,8 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
                         .releaseDate(rs.getDate("release_date").toLocalDate())
                         .duration(rs.getLong("duration"))
                         .mpaId(rs.getLong("mpa_id"))
-                        .genres(genreList)
-                        .directors(directorList)
+                        .genres(new ArrayList<>())
+                        .directors(new ArrayList<>())
                         .likes(new HashSet<>())
                         .build();
                 filmMap.put(filmId, film);
@@ -48,12 +44,24 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
             long genreId = rs.getLong("genre_id");
             if (!rs.wasNull()) {
-                genreList.add(Genre.builder().id(genreId).build());
+                @SuppressWarnings("unchecked")
+                List<Genre> currentGenres = (List<Genre>) film.getGenres();
+                boolean exists = currentGenres.stream()
+                        .anyMatch(g -> g.getId() == genreId);
+                if (!exists) {
+                    currentGenres.add(Genre.builder().id(genreId).build());
+                }
             }
 
             long directorId = rs.getLong("director_id");
             if (!rs.wasNull()) {
-                directorList.add(Director.builder().id(directorId).build());
+                @SuppressWarnings("unchecked")
+                List<Director> currentDirectors = (List<Director>) film.getDirectors();
+                boolean exists = currentDirectors.stream()
+                        .anyMatch(d -> d.getId() == directorId);
+                if (!exists) {
+                    currentDirectors.add(Director.builder().id(directorId).build());
+                }
             }
         }
 
@@ -221,8 +229,8 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     }
 
     @Override
-    public List<Film> getByDirectorId(long id) {
-        String query = """
+    public List<Film> getByDirectorId(long id, String sortBy, String sortOrder) {
+        String select = """
                 SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration,
                     f.mpa_id, fg.genre_id, fd.director_id,
                     (
@@ -234,25 +242,32 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
                 JOIN film_directors AS fd ON fd.film_id = f.film_id
                 LEFT JOIN film_genres AS fg ON fg.film_id = f.film_id
                 WHERE fd.director_id = ?
-                ORDER BY like_count DESC, f.release_date ASC;
                 """;
 
-        log.debug("""
-                SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration,
-                    f.mpa_id, fg.genre_id, fd.director_id,
-                    (
-                        SELECT COUNT(DISTINCT l.user_id)
-                        FROM likes AS l
-                        WHERE l.film_id = f.film_id
-                    ) AS like_count
-                FROM films AS f
-                JOIN film_directors AS fd ON fd.film_id = f.film_id
-                LEFT JOIN film_genres AS fg ON fg.film_id = f.film_id
-                WHERE fd.director_id = {}
-                ORDER BY like_count DESC, f.release_date ASC;
-                """, id);
+        String orderBy = buildOrderBy(sortBy, sortOrder);
+        String query = select + orderBy;
+
+        log.debug("Выполнение getByDirectorId для режиссёра с id {}: {}", id, query);
 
         return jdbc.query(query, filmWithGenresExtractorAndDirectors, id);
+    }
+
+    private String buildOrderBy(String sortBy, String sortOrder) {
+        String order = "ASC".equalsIgnoreCase(sortOrder) ? "ASC" : "DESC";
+
+        if (sortBy == null || sortBy.isBlank()) {
+            return "ORDER BY like_count DESC, f.release_date ASC";
+        }
+
+        if (sortBy.equals("year")) {
+            return "ORDER BY EXTRACT(YEAR FROM f.release_date) " + order;
+        }
+
+        if (sortBy.equals("likes")) {
+            return "ORDER BY like_count " + order;
+        }
+
+        throw new ValidationException(String.format("Неверный параметр сортировки: %s", sortBy));
     }
 
     @Override

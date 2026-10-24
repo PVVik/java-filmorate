@@ -124,7 +124,8 @@ public class InMemoryFilmStorage implements FilmStorage {
         films.remove(id);
     }
 
-    public List<Film> getByDirectorId(long id) {
+    @Override
+    public List<Film> getByDirectorId(long id, String sortBy, String sortOrder) {
         return List.of();
     }
 

@@ -248,33 +248,23 @@ public class FilmService {
         var mpaMap = getMpaMap();
         var directorMap = getDirectorMap();
 
-        String[] stringsSortBy;
+        String field = null;
+        String order = "asc";
+
         if (StringUtils.hasText(sortBy)) {
-            stringsSortBy = sortBy.split(",");
+            String[] stringsSortBy = sortBy.split(",");
             checkSortParameters(stringsSortBy);
 
             if (stringsSortBy.length == 2) {
-                return filmStorage.getByDirectorId(director.getId()).stream()
-                        .sorted(Comparator.comparing((Film f) -> f.getReleaseDate().getYear())
-                                .thenComparing(Comparator.comparing((Film f) -> f.getLikes().size()).reversed())
-                                .thenComparing(Film::getId))
-                        .map(film -> getFilmDtoWithGenresAndMpaAndDirectors(film, genreMap, mpaMap, directorMap))
-                        .toList();
-            } else if (stringsSortBy.length == 1 && stringsSortBy[0].equals("year")) {
-                return filmStorage.getByDirectorId(director.getId()).stream()
-                        .sorted(Comparator.comparing((Film f) -> f.getReleaseDate().getYear())
-                                .thenComparing(Film::getId))
-                        .map(film -> getFilmDtoWithGenresAndMpaAndDirectors(film, genreMap, mpaMap, directorMap))
-                        .toList();
-            } else if (stringsSortBy.length == 1 && stringsSortBy[0].equals("likes")) {
-                return filmStorage.getByDirectorId(director.getId()).stream()
-                        .sorted(Comparator.comparing((Film f) -> f.getLikes().size()).reversed()
-                                .thenComparing(Film::getId))
-                        .map(film -> getFilmDtoWithGenresAndMpaAndDirectors(film, genreMap, mpaMap, directorMap))
-                        .toList();
+                field = stringsSortBy[0];
+                order = stringsSortBy[1];
+            } else if (stringsSortBy.length == 1) {
+                field = stringsSortBy[0];
             }
         }
-        return filmStorage.getByDirectorId(director.getId()).stream()
+
+
+        return filmStorage.getByDirectorId(director.getId(), field, order).stream()
                 .map(film -> getFilmDtoWithGenresAndMpaAndDirectors(film, genreMap, mpaMap, directorMap))
                 .toList();
     }

@@ -32,7 +32,7 @@ public interface FilmStorage {
 
     void deleteFilm(long id);
 
-    List<Film> getByDirectorId(long id);
+    List<Film> getByDirectorId(long id, String sortBy, String sortOrder);
 
     Set<Long> findLikedFilmIdsByUser(long userId);
 

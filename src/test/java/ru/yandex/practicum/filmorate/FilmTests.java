@@ -178,7 +178,7 @@ class FilmTests {
         filmStorage.addLike(f1.getId(), u2);
         filmStorage.addLike(f2.getId(), u1);
 
-        List<Film> result = filmStorage.getByDirectorId(id1);
+        List<Film> result = filmStorage.getByDirectorId(id1, null, null);
 
         assertEquals(2, result.size());
 
