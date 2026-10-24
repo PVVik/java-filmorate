@@ -9,8 +9,6 @@ import ru.yandex.practicum.filmorate.mapper.GenreMapper;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -21,31 +19,39 @@ public class GenreService {
 
     public List<GenreDto> getGenres() {
         log.info("Обработали запрос на получение всех жанров");
-
-        return genreStorage.getGenres().stream().map(GenreMapper::mapToDto).toList();
+        return genreStorage.getGenresDto();
     }
 
     public GenreDto getGenreById(long genreId) {
         log.info("Получили жанр по id {}", genreId);
-
-        return GenreMapper.mapToDto(genreStorage.getGenreById(genreId));
+        var genre = genreStorage.getGenreById(genreId);
+        return GenreMapper.mapToDto(genre);
     }
 
-    public Set<Long> addFilmGenres(long filmId, Set<GenreDto> genres) {
-        var genreIds = genres.stream()
-                .map(GenreDto::getId)
-                .collect(Collectors.toSet());
+    public List<GenreDto> getGenresByFilmId(long filmId) {
+        log.info("Получили жанры фильма с id {}", filmId);
+        return genreStorage.getGenresByFilmId(filmId);
+    }
 
-        log.info("Добавили жанры к фильму с id {}", filmId);
+    public List<Long> addFilmGenres(long filmId, List<Long> genreIds) {
+        if (genreIds == null || genreIds.isEmpty()) {
+            return List.of();
+        }
+
+        genreStorage.removeFilmGenres(filmId);
 
         return genreStorage.addFilmGenres(filmId, genreIds);
     }
 
-    public void checkGenresExists(Set<GenreDto> genres) {
+    public void checkGenresExists(List<GenreDto> genres) {
+        if (genres == null || genres.isEmpty()) {
+            return;
+        }
+
         var allGenres = getGenres();
         var existingIds = allGenres.stream()
                 .map(GenreDto::getId)
-                .collect(Collectors.toSet());
+                .toList();
 
         var missingIds = genres.stream()
                 .map(GenreDto::getId)
@@ -55,6 +61,11 @@ public class GenreService {
         if (!missingIds.isEmpty()) {
             throw new NotFoundException(String.format("Жанра с id %d не существует", missingIds.getFirst()));
         }
-
     }
+
+    public void removeFilmGenres(long filmId) {
+        log.info("Удалили жанры фильма {}", filmId);
+        genreStorage.removeFilmGenres(filmId);
+    }
+
 }

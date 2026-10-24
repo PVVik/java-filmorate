@@ -1,0 +1,30 @@
+package ru.yandex.practicum.filmorate.storage.review;
+
+import ru.yandex.practicum.filmorate.model.Review;
+import ru.yandex.practicum.filmorate.model.VoteType;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface ReviewStorage {
+
+    Review create(Review review);
+
+    Review update(Review review);
+
+    void delete(long reviewId);
+
+    Review getById(long reviewId);
+
+    List<Review> getAllByFilmIdAndLimit(long filmId, int limit);
+
+    List<Review> getAllByLimit(int limit);
+
+    void addVote(long reviewId, long userId, VoteType voteType);
+
+    void deleteVote(long reviewId, long userId, VoteType voteType);
+
+    void updateVote(long reviewId, long userId, VoteType voteType);
+
+    Optional<String> findVoteType(long reviewId, long userId);
+}

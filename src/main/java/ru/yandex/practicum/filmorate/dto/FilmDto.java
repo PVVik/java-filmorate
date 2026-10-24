@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @Setter
@@ -24,10 +24,11 @@ public class FilmDto {
     @Positive(message = "Продолжительность фильма может быть только положительной")
     private Long duration;
     private MpaDto mpa;
-    private Set<GenreDto> genres;
+    private List<GenreDto> genres;
+    private List<DirectorDto> directors;
 
     public FilmDto(long id, String name, String description, LocalDate releaseDate, Long duration, MpaDto mpa,
-                   Set<GenreDto> genres) {
+                   List<GenreDto> genres, List<DirectorDto> directors) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -35,6 +36,7 @@ public class FilmDto {
         this.duration = duration;
         this.mpa = mpa;
         this.genres = genres;
+        this.directors = directors;
     }
 
 }

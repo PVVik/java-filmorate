@@ -7,15 +7,14 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
+import ru.yandex.practicum.filmorate.dto.GenreDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.genre.GenreDbStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreRowMapper;
 
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
@@ -34,7 +33,7 @@ class GenreTests {
     @Test
     @DisplayName("Метод должен вернуть список всех жанров")
     public void getGenres_shouldReturnAllGenres() {
-        List<Genre> genres = genreStorage.getGenres();
+        List<GenreDto> genres = genreStorage.getGenresDto();
 
         assertThat(genres).isNotEmpty();
     }
@@ -56,14 +55,14 @@ class GenreTests {
     }
 
     @Test
-    @DisplayName("Метод должен добавить жанры фильму и вернуть их ID")
+    @DisplayName("Метод должен добавить жанры фильму и вернуть их ID в том же порядке")
     public void addFilmGenres_shouldAddGenres() {
         long filmId = createFilmForTest();
-        Set<Long> genreIds = new HashSet<>(Set.of(1L, 2L));
+        List<Long> genreIds = List.of(1L, 2L);
 
-        Set<Long> result = genreStorage.addFilmGenres(filmId, genreIds);
+        List<Long> result = genreStorage.addFilmGenres(filmId, genreIds);
 
-        assertThat(result).containsExactlyInAnyOrder(1L, 2L);
+        assertThat(result).containsExactly(1L, 2L);
     }
 
     private long createFilmForTest() {
@@ -73,4 +72,5 @@ class GenreTests {
         return jdbc.queryForObject("SELECT film_id FROM films WHERE film_name = 'Test Film'",
                 Long.class);
     }
+
 }
