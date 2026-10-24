@@ -23,30 +23,30 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
 
     @Override
     public Review create(Review review) {
-        String query = "INSERT INTO reviews (content, is_positive, user_id, film_id, useful) " +
-                "VALUES (?, ?, ?, ?, ?)";
+        String query = "INSERT INTO reviews (content, is_positive, user_id, film_id) " +
+                "VALUES (?, ?, ?, ?)";
 
-        log.debug("INSERT INTO reviews (content, is_positive, user_id, film_id, useful) " +
-                        "VALUES ({}, {}, {}, {}, {})", review.getContent(), review.isPositive(), review.getUserId(),
-                review.getFilmId(), review.getUseful());
+        log.debug("INSERT INTO reviews (content, is_positive, user_id, film_id) " +
+                        "VALUES ({}, {}, {}, {})", review.getContent(), review.isPositive(),
+                review.getUserId(), review.getFilmId());
 
         long id = insert(query, review.getContent(), review.isPositive(), review.getUserId(),
-                review.getFilmId(), review.getUseful());
+                review.getFilmId());
         review.setReviewId(id);
 
-        return review;
+        return getById(id);
     }
 
     @Override
     public Review update(Review review) {
-        String query = "UPDATE reviews SET content = ?, is_positive = ?, useful = ? WHERE review_id = ?";
+        String query = "UPDATE reviews SET content = ?, is_positive = ? WHERE review_id = ?";
 
-        log.debug("UPDATE reviews SET content = {}, is_positive = {}, useful = {} WHERE review_id = {}",
-                review.getContent(), review.isPositive(), review.getUseful(), review.getReviewId());
+        log.debug("UPDATE reviews SET content = {}, is_positive = {} WHERE review_id = {}",
+                review.getContent(), review.isPositive(), review.getReviewId());
 
-        update(query, review.getContent(), review.isPositive(), review.getUseful(), review.getReviewId());
+        update(query, review.getContent(), review.isPositive(), review.getReviewId());
 
-        return review;
+        return getById(review.getReviewId());
     }
 
     @Override
@@ -60,37 +60,64 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
 
     @Override
     public Review getById(long reviewId) {
-        String query = "SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id, r.useful " +
-                "FROM reviews AS r WHERE r.review_id = ?";
+        String query = """
+            SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id,
+                   COALESCE(SUM(CASE v.vote_type
+                       WHEN 'LIKE' THEN 1
+                       WHEN 'DISLIKE' THEN -1
+                       ELSE 0 END), 0) AS useful
+            FROM reviews AS r
+            LEFT JOIN review_votes AS v ON v.review_id = r.review_id
+            WHERE r.review_id = ?
+            GROUP BY r.review_id, r.content, r.is_positive, r.user_id, r.film_id
+            """;
 
-        log.debug("SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id, r.useful " +
-                "FROM reviews AS r WHERE r.review_id = {}", reviewId);
+        log.debug("SELECT review with useful calculation for id {}", reviewId);
 
-        return findOne(query, reviewId).orElseGet(() -> {
-                    log.warn("Отзыва с id {} не существует", reviewId);
-                    throw new NotFoundException(String.format("Отзыва с id %d не существует", reviewId));
-                }
-        );
+        return findOne(query, reviewId).orElseThrow(() -> {
+            log.warn("Отзыва с id {} не существует", reviewId);
+            return new NotFoundException(String.format("Отзыва с id %d не существует", reviewId));
+        });
     }
 
     @Override
     public List<Review> getAllByFilmIdAndLimit(long filmId, int limit) {
-        String query = "SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id, r.useful " +
-                "FROM reviews AS r WHERE r.film_id = ? ORDER BY r.useful DESC, r.review_id ASC LIMIT ?";
+        String query = """
+            SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id,
+                   COALESCE(SUM(CASE v.vote_type
+                       WHEN 'LIKE' THEN 1
+                       WHEN 'DISLIKE' THEN -1
+                       ELSE 0 END), 0) AS useful
+            FROM reviews AS r
+            LEFT JOIN review_votes AS v ON v.review_id = r.review_id
+            WHERE r.film_id = ?
+            GROUP BY r.review_id, r.content, r.is_positive, r.user_id, r.film_id
+            ORDER BY useful DESC, r.review_id ASC
+            LIMIT ?
+            """;
 
-        log.debug("SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id, r.useful " +
-                "FROM reviews AS r WHERE r.film_id = {} LIMIT {}", filmId, limit);
+        log.debug("SELECT reviews for film {} with limit {}", filmId, limit);
 
         return findMany(query, filmId, limit);
     }
 
     @Override
     public List<Review> getAllByLimit(int limit) {
-        String query = "SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id, r.useful " +
-                "FROM reviews AS r ORDER BY r.useful DESC, r.review_id ASC LIMIT ?";
+        String query = """
+            SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id,
+                   COALESCE(SUM(CASE v.vote_type
+                       WHEN 'LIKE' THEN 1
+                       WHEN 'DISLIKE' THEN -1
+                       ELSE 0 END), 0) AS useful
+            FROM reviews AS r
+            LEFT JOIN review_votes AS v ON v.review_id = r.review_id
+            GROUP BY r.review_id, r.content, r.is_positive, r.user_id, r.film_id
+            ORDER BY useful DESC, r.review_id ASC
+            LIMIT ?
+            """;
 
-        log.debug("SELECT r.review_id, r.content, r.is_positive, r.user_id, r.film_id, r.useful " +
-                "FROM reviews AS r LIMIT {}", limit);
+
+        log.debug("SELECT all reviews with limit {}", limit);
 
         return findMany(query, limit);
     }

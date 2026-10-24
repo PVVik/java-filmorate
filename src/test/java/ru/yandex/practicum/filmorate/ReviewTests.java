@@ -52,15 +52,23 @@ class ReviewTests {
     public void updateReview_shouldUpdateReview() {
         Review saved = createReviewWithFullDependencies(CONTENT_INITIAL, true, 0L);
 
+        for (int i = 0; i < 3; i++) {
+            long voterId = createTestUser("voter" + i + "@test.com", "voter" + i, "Voter " + i,
+                    LocalDate.of(1990 + i, 1, 1));
+            reviewStorage.addVote(saved.getReviewId(), voterId, VoteType.LIKE);
+        }
+        long dislikerId = createTestUser("disliker@test.com", "disliker", "Disliker",
+                LocalDate.of(1995, 1, 1));
+        reviewStorage.addVote(saved.getReviewId(), dislikerId, VoteType.DISLIKE);
+
         saved.setContent(CONTENT_UPDATED);
         saved.setPositive(false);
-        saved.setUseful(5L);
 
         Review updated = reviewStorage.update(saved);
 
         assertThat(updated.getContent()).isEqualTo(CONTENT_UPDATED);
         assertThat(updated.isPositive()).isFalse();
-        assertThat(updated.getUseful()).isEqualTo(5L);
+        assertThat(updated.getUseful()).isEqualTo(2L);
     }
 
     @Test

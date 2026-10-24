@@ -84,79 +84,61 @@ public class ReviewService {
 
     public void likeReview(long reviewId, long userId) {
         checkReviewExists(reviewId);
-        var review = reviewStorage.getById(reviewId);
         userService.checkUserExists(userId);
 
         var existingVote = reviewStorage.findVoteType(reviewId, userId);
-
-        if (existingVote.isPresent()) {
-            if (existingVote.get().equals("LIKE")) {
-                return;
-            }
-            reviewStorage.updateVote(reviewId, userId, VoteType.LIKE);
-            review.setUseful(review.getUseful() + 2);
-        } else {
-            reviewStorage.addVote(reviewId, userId, VoteType.LIKE);
-            review.setUseful(review.getUseful() + 1);
+        if (existingVote.filter(VoteType.LIKE.toString()::equals).isPresent()) {
+            return;
         }
 
-        reviewStorage.update(review);
-        log.info("Лайкнули отзыв с id {}, сейчас оценка {}", review.getReviewId(), review.getUseful());
+        if (existingVote.isPresent()) {
+            reviewStorage.updateVote(reviewId, userId, VoteType.LIKE);
+        } else {
+            reviewStorage.addVote(reviewId, userId, VoteType.LIKE);
+        }
+        log.info("Лайкнули отзыв с id {}", reviewId);
     }
 
     public void dislikeReview(long reviewId, long userId) {
         checkReviewExists(reviewId);
-        var review = reviewStorage.getById(reviewId);
         userService.checkUserExists(userId);
 
         var existingVote = reviewStorage.findVoteType(reviewId, userId);
-
-        if (existingVote.isPresent()) {
-            if (existingVote.get().equals("DISLIKE")) {
-                return;
-            }
-            reviewStorage.updateVote(reviewId, userId, VoteType.DISLIKE);
-            review.setUseful(review.getUseful() - 2);
-        } else {
-            reviewStorage.addVote(reviewId, userId, VoteType.DISLIKE);
-            review.setUseful(review.getUseful() - 1);
+        if (existingVote.filter(VoteType.DISLIKE.toString()::equals).isPresent()) {
+            return;
         }
 
-        reviewStorage.update(review);
-        log.info("Дизлайкнули отзыв с id {}, сейчас оценка {}", review.getReviewId(), review.getUseful());
+        if (existingVote.isPresent()) {
+            reviewStorage.updateVote(reviewId, userId, VoteType.DISLIKE);
+        } else {
+            reviewStorage.addVote(reviewId, userId, VoteType.DISLIKE);
+        }
+        log.info("Дизлайкнули отзыв с id {}", reviewId);
     }
 
     public void deleteLikeReview(long reviewId, long userId) {
         checkReviewExists(reviewId);
-        var review = reviewStorage.getById(reviewId);
         userService.checkUserExists(userId);
 
-        if (reviewStorage.findVoteType(reviewId, userId).isEmpty()) return;
+        var existingVote = reviewStorage.findVoteType(reviewId, userId);
+        if (existingVote.filter(VoteType.LIKE.toString()::equals).isEmpty()) return;
 
         reviewStorage.deleteVote(reviewId, userId, VoteType.LIKE);
-        review.setUseful(review.getUseful() - 1);
-        reviewStorage.update(review);
-
-        log.info("Удалили лайк отзыв с id {}, сейчас оценка отзыва {}", review.getReviewId(), review.getUseful());
+        log.info("Удалили лайк отзыва с id {}", reviewId);
     }
 
     public void deleteDislikeReview(long reviewId, long userId) {
         checkReviewExists(reviewId);
-        var review = reviewStorage.getById(reviewId);
         userService.checkUserExists(userId);
 
-        if (reviewStorage.findVoteType(reviewId, userId).isEmpty()) return;
+        var existingVote = reviewStorage.findVoteType(reviewId, userId);
+        if (existingVote.filter(VoteType.DISLIKE.toString()::equals).isEmpty()) return;
 
         reviewStorage.deleteVote(reviewId, userId, VoteType.DISLIKE);
-        review.setUseful(review.getUseful() + 1);
-        reviewStorage.update(review);
-
-        log.info("Удалили дизлайк отзыв с id {}, сейчас оценка отзыва {}", review.getReviewId(), review.getUseful());
+        log.info("Удалили дизлайк отзыва с id {}", reviewId);
     }
 
     private void checkReviewExists(long id) {
         reviewStorage.getById(id);
     }
-
-
 }
